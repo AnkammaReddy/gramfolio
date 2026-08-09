@@ -50,7 +50,11 @@ function Tooltip({ defaultOpen, onOpenChange, ...props }: TooltipPrimitive.Root.
   )
 }
 
-function TooltipTrigger({ onPointerDown, ...props }: TooltipPrimitive.Trigger.Props) {
+function TooltipTrigger({
+  onPointerDown,
+  asChild: _asChild,
+  ...props
+}: TooltipPrimitive.Trigger.Props & { asChild?: boolean }) {
   const { setOpen, touchLocked } = useContext(TooltipOpenContext)
   return (
     <TooltipPrimitive.Trigger

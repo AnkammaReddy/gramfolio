@@ -5,6 +5,7 @@ import { CashbackTracker } from "@/components/cashback/cashback-tracker"
 import { RewardPointsTracker } from "@/components/cashback/reward-points-tracker"
 import { EmptyState } from "@/components/empty-state"
 import { ButtonLink } from "@/components/ui/button-link"
+import { PageHeader } from "@/components/page-header"
 
 export default async function CashbackPage() {
   const purchases = await getPurchases()
@@ -14,12 +15,7 @@ export default async function CashbackPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Rewards Tracker</h1>
-          <p className="mt-2 text-muted-foreground">Track your cashback and credit card reward points</p>
-        </div>
-      </div>
+      <PageHeader description="Track your cashback and credit card reward points" />
 
       {!hasData ? (
         <EmptyState

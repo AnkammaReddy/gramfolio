@@ -941,7 +941,7 @@ function PriceBreakdownSection({
                 Platform Discount (₹)
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger asChild>
+                    <TooltipTrigger className="inline-flex">
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[200px] text-xs">
@@ -967,7 +967,7 @@ function PriceBreakdownSection({
                 Bank Instant Discount (₹)
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger asChild>
+                    <TooltipTrigger className="inline-flex">
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[200px] text-xs">
@@ -993,7 +993,7 @@ function PriceBreakdownSection({
                 Platform Charges (₹)
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger asChild>
+                    <TooltipTrigger className="inline-flex">
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[200px] text-xs">

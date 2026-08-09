@@ -7,10 +7,13 @@ import { Shield, Search } from "lucide-react"
 import type { SecurityLog } from "@/lib/db/schema"
 
 const EVENT_META: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  recovery_attempt:      { label: "Attempt",      variant: "secondary" },
-  recovery_success:      { label: "Success",      variant: "default" },
-  recovery_failed:       { label: "Failed",       variant: "destructive" },
-  rate_limit_exceeded:   { label: "Rate limited", variant: "destructive" },
+  recovery_attempt:        { label: "Recovery attempt",  variant: "secondary" },
+  recovery_success:        { label: "Recovery success",  variant: "default" },
+  recovery_failed:         { label: "Recovery failed",   variant: "destructive" },
+  rate_limit_exceeded:     { label: "Rate limited",      variant: "destructive" },
+  account_delete_attempt:  { label: "Delete attempt",    variant: "secondary" },
+  account_delete_success:  { label: "Account deleted",   variant: "default" },
+  account_delete_failed:   { label: "Delete failed",     variant: "destructive" },
 }
 
 function fmt(d: Date | string) {
@@ -41,7 +44,7 @@ export function SecurityLogsClient({ logs }: { logs: SecurityLog[] }) {
           <h1 className="text-2xl font-semibold tracking-tight">Security Logs</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Password recovery attempts — last 200 events. Search by email, IP, or event type.
+          Auth security events (password recovery &amp; account deletion) — last 200. Search by email, IP, or event type.
         </p>
       </div>
 

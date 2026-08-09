@@ -1,10 +1,13 @@
 export const dynamic = 'force-dynamic'
 
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 import { getCurrentUser } from "@/lib/session"
 import { getSettings } from "@/app/actions/settings"
+import { getGoldPrices } from "@/app/actions/gold-prices"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppHeader } from "@/components/app-header"
+import { HeaderSpotPrices } from "@/components/header-spot-prices"
 import { GraphModeProvider } from "@/components/graph-mode-provider"
 import { CurrencyProvider } from "@/components/currency-provider"
 import { DemoModeProvider } from "@/components/demo-mode-provider"
@@ -17,7 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await getCurrentUser()
   if (!user) redirect("/sign-in")
 
-  const settings = await getSettings()
+  const [settings, prices] = await Promise.all([getSettings(), getGoldPrices()])
 
   // Determine admin role — when auth is disabled, default to admin so the nav is visible
   let isAdmin = AUTH_DISABLED
@@ -38,7 +41,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="flex min-h-svh bg-background">
           <AppSidebar isAdmin={isAdmin} />
           <div className="flex min-w-0 flex-1 flex-col">
-            <AppHeader user={{ name: user.name, email: user.email, displayName: settings.displayName ?? null }} isAdmin={isAdmin} isDemo={isDemo} />
+            <AppHeader
+              user={{ name: user.name, email: user.email, displayName: settings.displayName ?? null }}
+              isAdmin={isAdmin}
+              isDemo={isDemo}
+              spotPrices={
+                <Suspense fallback={null}>
+                  <HeaderSpotPrices prices={prices} />
+                </Suspense>
+              }
+            />
             {isDemo && (
               <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-xs text-amber-700 dark:text-amber-400">
                 You are viewing a read-only demo account. Data shown is sample data only.

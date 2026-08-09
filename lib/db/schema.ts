@@ -245,7 +245,7 @@ export const insightReactions = pgTable("insight_reactions", {
 
 export const securityLogs = pgTable("security_logs", {
   id: serial("id").primaryKey(),
-  eventType: text("eventType").notNull(), // recovery_attempt | recovery_success | recovery_failed | rate_limit_exceeded
+  eventType: text("eventType").notNull(), // recovery_* | account_delete_attempt | account_delete_success | account_delete_failed | rate_limit_exceeded
   email: text("email").notNull(),
   ipAddress: text("ipAddress").notNull(),
   details: jsonb("details").$type<Record<string, string | number>>().default({}),

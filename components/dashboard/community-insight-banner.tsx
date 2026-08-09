@@ -52,10 +52,10 @@ export function CommunityInsightBanner({ insight }: { insight: InsightWithReacti
       {/* Content */}
       <div className="flex-1 min-w-0 space-y-0.5">
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
+          <span className="text-xs text-muted-foreground shrink-0">
             Insight · {insight.weekLabel}
           </span>
-          <span className="text-xs font-medium text-foreground leading-snug">{insight.title}</span>
+          <span className="text-sm text-foreground leading-snug">{insight.title}</span>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{insight.body}</p>
       </div>
@@ -67,7 +67,7 @@ export function CommunityInsightBanner({ insight }: { insight: InsightWithReacti
           disabled={pending}
           aria-label="Useful"
           className={cn(
-            "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
+            "flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors",
             state.userReaction === "like"
               ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
               : "border-border text-muted-foreground hover:border-emerald-500/40 hover:text-emerald-600",
@@ -81,7 +81,7 @@ export function CommunityInsightBanner({ insight }: { insight: InsightWithReacti
           disabled={pending}
           aria-label="Not useful"
           className={cn(
-            "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
+            "flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors",
             state.userReaction === "dislike"
               ? "border-rose-500/50 bg-rose-500/10 text-rose-600 dark:text-rose-400"
               : "border-border text-muted-foreground hover:border-rose-500/40 hover:text-rose-600",

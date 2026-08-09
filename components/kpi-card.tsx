@@ -38,12 +38,10 @@ export function KpiCard({
             {label}
           </span>
           {tooltip && (
-            <TooltipProvider delayDuration={200}>
+            <TooltipProvider delay={200}>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-default shrink-0">
-                    <Info className="h-3 w-3 text-muted-foreground/60 hover:text-muted-foreground transition-colors" />
-                  </span>
+                <TooltipTrigger className="inline-flex cursor-default shrink-0 rounded-sm p-0.5">
+                  <Info className="h-3 w-3 text-muted-foreground/60 hover:text-muted-foreground transition-colors" />
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-[220px] text-xs leading-snug">
                   {tooltip}

@@ -18,7 +18,7 @@ export default async function CardsAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Credit Card Analytics" description="Spend, rewards, and cashback by card" />
+      <PageHeader description="Spend, rewards, and cashback by card" />
       {purchases.length === 0 ? (
         <EmptyState
           icon={CreditCard}

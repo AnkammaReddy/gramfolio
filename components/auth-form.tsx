@@ -15,6 +15,7 @@ import { Coins, Loader2, Eye, EyeOff, TrendingUp, ShieldCheck, BarChart3, Shield
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { authErrorToast, AuthSupportNote } from "@/components/auth-support"
 
 const DEMO_EMAIL = "demo@gramfolio.app"
 const DEMO_PASSWORD = "GramFolio@Demo"
@@ -104,7 +105,7 @@ export function AuthForm({
   useEffect(() => {
     if (!isSignUp && searchParams.get("demo") === "1") {
       if (DEMO_DISABLED) {
-        toast.error("Demo access is temporarily disabled for security reasons.")
+        authErrorToast("Demo access is temporarily disabled for security reasons.")
         return
       }
       runDemoSignIn()
@@ -114,7 +115,7 @@ export function AuthForm({
 
   async function runDemoSignIn() {
     if (DEMO_DISABLED) {
-      toast.error("Demo access is temporarily disabled for security reasons.")
+      authErrorToast("Demo access is temporarily disabled for security reasons.")
       return
     }
     setEmail(DEMO_EMAIL)
@@ -129,7 +130,7 @@ export function AuthForm({
       window.location.href = "/settings"
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      toast.error(message && message !== "[object Event]" ? message : "Something went wrong. Please try again.")
+      authErrorToast(message && message !== "[object Event]" ? message : "Something went wrong. Please try again.")
       setLoading(false)
     }
   }
@@ -152,6 +153,7 @@ export function AuthForm({
       if (!consent) errors.consent = "You must agree to the Privacy Policy and Terms of Service."
       if (Object.keys(errors).length > 0) {
         setFieldErrors(errors)
+        authErrorToast("Please fix the highlighted fields and try again.")
         return
       }
     }
@@ -192,9 +194,9 @@ export function AuthForm({
     } catch (err) {
       const message = err instanceof Error ? err.message : null
       if (message === "DEMO_READ_ONLY") {
-        toast.error("Demo account is read-only. Sign up for a free account to save data.")
+        authErrorToast("Demo account is read-only. Sign up for a free account to save data.")
       } else {
-        toast.error(message && message !== "[object Event]" ? message : "Something went wrong. Please try again.")
+        authErrorToast(message && message !== "[object Event]" ? message : "Something went wrong. Please try again.")
       }
       setLoading(false)
     }
@@ -402,6 +404,8 @@ export function AuthForm({
               </>
             )}
           </p>
+
+          <AuthSupportNote className="mt-4 text-center" />
         </div>
       </div>
     </div>

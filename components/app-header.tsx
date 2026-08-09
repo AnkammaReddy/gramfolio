@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { navItems } from "@/lib/nav"
 import { cn } from "@/lib/utils"
 import { authClient } from "@/lib/auth-client"
@@ -32,10 +32,12 @@ export function AppHeader({
   user,
   isAdmin = false,
   isDemo = false,
+  spotPrices,
 }: {
   user: { name?: string | null; email?: string | null; displayName?: string | null }
   isAdmin?: boolean
   isDemo?: boolean
+  spotPrices?: ReactNode
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -57,12 +59,12 @@ export function AppHeader({
     .toUpperCase()
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur lg:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur sm:gap-3 sm:px-4 lg:h-16 lg:px-6">
       {/* Mobile menu */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger
           render={
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" />
+            <Button variant="ghost" size="icon" className="lg:hidden shrink-0" aria-label="Open menu" />
           }
         >
           <Menu className="h-5 w-5" />
@@ -202,9 +204,16 @@ export function AppHeader({
         </SheetContent>
       </Sheet>
 
-      <h1 className="text-base font-semibold tracking-tight">{titleFor(pathname)}</h1>
+      <h1 className="min-w-0 shrink truncate text-base font-semibold tracking-tight">
+        {titleFor(pathname)}
+      </h1>
 
-      <div className="ml-auto flex items-center gap-2">
+      {/* Spot prices — fills the header gap; visible on mobile + desktop */}
+      <div className="ml-auto min-w-0 flex-1 overflow-hidden px-1 sm:px-2">
+        <div className="flex justify-end">{spotPrices}</div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger
