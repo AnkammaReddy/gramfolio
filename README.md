@@ -1,4 +1,4 @@
-# Aurum — Gold Portfolio & Reward Optimizer
+# Gramfolio — Gold Portfolio & Reward Optimizer
 
 A premium personal portfolio tracker for **physical 24K gold coins and bars**, focused on optimizing
 credit-card reward strategies and tracking cashback. Built for a single user today, architected for
