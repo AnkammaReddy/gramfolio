@@ -11,7 +11,7 @@ export default async function TimelinePage() {
   const [purchases, prices] = await Promise.all([getPurchases(), getGoldPrices()])
   return (
     <div className="space-y-6">
-      <PageHeader title="Investment Timeline" description="Your purchases in chronological order" />
+      <PageHeader description="Your purchases in chronological order" />
       {purchases.length === 0 ? (
         <EmptyState
           icon={Clock}

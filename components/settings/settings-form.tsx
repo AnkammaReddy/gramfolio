@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -19,6 +19,7 @@ import {
 import { saveSettings } from "@/app/actions/settings"
 import { useIsDemo } from "@/components/demo-mode-provider"
 import { PasswordSecurity } from "./password-security"
+import { DeleteAccount } from "./delete-account"
 
 import type { SettingsDTO } from "@/lib/types"
 
@@ -47,12 +48,17 @@ export function SettingsForm({
   const { theme, setTheme } = useTheme()
   const isDemo = useIsDemo()
   const [pending, startTransition] = useTransition()
+  const [themeMounted, setThemeMounted] = useState(false)
   const [displayName, setDisplayName] = useState(settings.displayName ?? "")
   const [editingName, setEditingName] = useState(false)
   const [draftName, setDraftName] = useState(settings.displayName ?? "")
   const [currency, setCurrency] = useState(settings.currency)
   const [graphMode, setGraphMode] = useState(settings.graphMode)
   const [dateRange, setDateRange] = useState(settings.defaultDateRange)
+
+  // next-themes resolves only on the client — avoid SSR/client Select mismatch
+  useEffect(() => setThemeMounted(true), [])
+  const themeValue = themeMounted ? (theme ?? "system") : "system"
 
   function handleSave() {
     startTransition(async () => {
@@ -209,11 +215,15 @@ export function SettingsForm({
           </div>
           <div className="space-y-1.5">
             <Label>Theme</Label>
-            <Select value={theme ?? "light"} onValueChange={(v) => setTheme((v as string) ?? "light")}>
+            <Select
+              value={themeValue}
+              onValueChange={(v) => setTheme((v as string) ?? "system")}
+            >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Theme" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="system">System</SelectItem>
                 <SelectItem value="light">Light</SelectItem>
                 <SelectItem value="dark">Dark</SelectItem>
               </SelectContent>
@@ -247,6 +257,8 @@ export function SettingsForm({
       <div className="lg:col-span-2">
         <PasswordSecurity hasPinSet={hasPinSet} />
       </div>
+
+      <DeleteAccount />
     </div>
   )
 }

@@ -1,4 +1,3 @@
-import { Suspense } from "react"
 import { Coins, Plus } from "lucide-react"
 import { getPurchases } from "@/app/actions/purchases"
 import { getGoldPrices } from "@/app/actions/gold-prices"
@@ -8,7 +7,6 @@ import { PageHeader } from "@/components/page-header"
 import { KpiGrid } from "@/components/dashboard/kpi-grid"
 import { DashboardCharts } from "@/components/charts/dashboard-charts"
 import { InsightsPanel } from "@/components/dashboard/insights-panel"
-import { InlineSpotPrices } from "@/components/dashboard/spot-price-bar"
 import { EmptyState } from "@/components/empty-state"
 import { ButtonLink } from "@/components/ui/button-link"
 import { DashboardFeedbackBanner } from "@/components/dashboard/feedback-banner"
@@ -27,7 +25,6 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-3">
       <PageHeader
-        title="Dashboard"
         description="Your gold portfolio at a glance"
         actions={
           <ButtonLink href="/purchases/new" size="sm">
@@ -51,7 +48,7 @@ export default async function DashboardPage() {
         />
       ) : (
         <>
-          <DashboardFeedbackBanner spotPrices={<Suspense fallback={null}><InlineSpotPrices /></Suspense>} />
+          <DashboardFeedbackBanner />
           {activeInsight && <CommunityInsightBanner insight={activeInsight} />}
           <InsightsPanel insights={insights} />
           <KpiGrid purchases={purchases} prices={prices} />

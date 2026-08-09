@@ -35,8 +35,8 @@ export function InsightsPanel({ insights }: { insights: Insight[] }) {
               toneStyle[insight.tone],
             )}
           >
-            <Icon className={cn("h-3 w-3 shrink-0", toneIconStyle[insight.tone])} />
-            <span className="text-[11px] font-semibold">{insight.text}</span>
+            <Icon className={cn("h-3.5 w-3.5 shrink-0", toneIconStyle[insight.tone])} />
+            <span className="text-sm">{insight.text}</span>
           </div>
         )
       })}

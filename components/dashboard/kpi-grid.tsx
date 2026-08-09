@@ -41,8 +41,8 @@ function PnlHeroCard({
     <div className="rounded-lg border bg-card p-3 flex flex-col gap-2 sm:rounded-xl sm:p-4">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-          <p className="text-[10px] text-muted-foreground">{sublabel}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="text-xs text-muted-foreground">{sublabel}</p>
         </div>
         <span
           className={cn(
@@ -61,7 +61,7 @@ function PnlHeroCard({
       <div>
         <p
           className={cn(
-            "text-lg font-bold tabular-nums sm:text-xl",
+            "text-sm font-semibold tabular-nums",
             !hasBullion
               ? "text-muted-foreground"
               : isGain
@@ -74,7 +74,7 @@ function PnlHeroCard({
         {hasBullion && (
           <p
             className={cn(
-              "text-[11px] font-medium mt-0.5",
+              "text-xs font-medium mt-0.5",
               isGain ? "text-[var(--color-success)]" : "text-destructive",
             )}
           >
@@ -83,7 +83,7 @@ function PnlHeroCard({
           </p>
         )}
         {!hasBullion && (
-          <p className="text-[10px] text-muted-foreground mt-0.5">Add today&apos;s gold price</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Add today&apos;s gold price</p>
         )}
       </div>
 
@@ -91,27 +91,27 @@ function PnlHeroCard({
         <div className="pt-1.5 border-t border-border space-y-1.5">
           <div className="flex items-center justify-between gap-2">
             {avgEffectivePrice !== undefined && (
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Avg Eff. Price</p>
-                <p className="text-[11px] font-semibold tabular-nums text-foreground">{fmt(avgEffectivePrice)}/g</p>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Avg Eff. /g</p>
+                <p className="text-sm font-semibold tabular-nums text-foreground truncate">{fmt(avgEffectivePrice)}</p>
               </div>
             )}
             {savingPerGram !== undefined && savingPerGram > 0 && (
-              <div className="text-right">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Saving</p>
-                <p className="text-[11px] font-semibold tabular-nums text-[var(--color-success)]">{fmt(savingPerGram)}/g</p>
+              <div className="min-w-0 text-right">
+                <p className="text-xs text-muted-foreground">Saving /g</p>
+                <p className="text-sm font-semibold tabular-nums text-[var(--color-success)] truncate">{fmt(savingPerGram)}</p>
               </div>
             )}
           </div>
           {rewardsSaved !== undefined && rewardsSaved > 0 && (
-            <p className="hidden text-[10px] text-[var(--color-success)] sm:block">
+            <p className="hidden text-xs text-[var(--color-success)] sm:block">
               {fmt(rewardsSaved)} saved via rewards
             </p>
           )}
           {breakdownHref && (
             <Link
               href={breakdownHref}
-              className="block text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+              className="block text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               View breakdown →
             </Link>
@@ -139,8 +139,8 @@ function StatCard({
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground truncate">{label}</p>
-        <p className="text-base font-semibold tabular-nums text-foreground mt-0.5">{value}</p>
+        <p className="text-xs text-muted-foreground truncate">{label}</p>
+        <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">{value}</p>
         {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
       </div>
     </div>
@@ -192,32 +192,24 @@ export function KpiGrid({
         <div className="rounded-lg border bg-card p-3 flex flex-col gap-2 sm:rounded-xl sm:p-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Today&apos;s Value</p>
-              <p className="text-[10px] text-muted-foreground">excl. GST</p>
+              <p className="text-xs text-muted-foreground">Today&apos;s Value</p>
+              <p className="text-xs text-muted-foreground">excl. GST</p>
             </div>
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/12 text-primary sm:h-7 sm:w-7">
               <Receipt className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </span>
           </div>
           <div>
-            <p className="text-lg font-bold tabular-nums text-foreground sm:text-xl">
+            <p className="text-sm font-semibold tabular-nums text-foreground">
               {hasBullion ? fmtC(t.todayBullionValue) : "—"}
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Invested: <span className="font-semibold text-foreground tabular-nums">{fmtC(t.totalPurchaseValue)}</span>
             </p>
           </div>
-          <div className="flex items-center justify-between pt-1.5 border-t border-border">
-            <div>
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Avg Buy</p>
-              <p className="text-[11px] font-semibold tabular-nums text-foreground">{fmt(t.avgPricePerGram)}/g</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Spot</p>
-              <p className="text-[11px] font-semibold tabular-nums text-foreground">
-                {hasBullion ? `${fmt(bullion)}/g` : "—"}
-              </p>
-            </div>
+          <div className="pt-1.5 border-t border-border">
+            <p className="text-xs text-muted-foreground">Avg Buy</p>
+            <p className="text-sm font-semibold tabular-nums text-foreground">{fmt(t.avgPricePerGram)}/g</p>
           </div>
         </div>
 
@@ -225,29 +217,35 @@ export function KpiGrid({
         <div className="rounded-lg border bg-card p-3 flex flex-col gap-2 sm:rounded-xl sm:p-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Holdings</p>
-              <p className="text-[10px] text-muted-foreground">{formatWeight(t.totalWeight)} total</p>
+              <p className="text-xs text-muted-foreground">Holdings</p>
+              <p className="text-xs text-muted-foreground">{formatWeight(t.totalWeight)} total</p>
             </div>
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-muted text-muted-foreground sm:h-7 sm:w-7">
               <Scale className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </span>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1">
             {holdingsByPurity.map(([purity, { weight, value, count }]) => (
               <div key={purity} className="flex items-center justify-between gap-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="inline-flex items-center rounded bg-muted px-1 py-0.5 text-[9px] font-semibold text-muted-foreground">
+                  <span className="inline-flex items-center rounded bg-muted px-1 py-0.5 text-[10px] font-semibold text-muted-foreground">
                     {purity}
                   </span>
-                  <span className="text-[11px] font-medium text-foreground tabular-nums">{formatWeight(weight)}</span>
-                  <span className="hidden text-[10px] text-muted-foreground sm:inline">{count} {count === 1 ? "purchase" : "purchases"}</span>
+                  <span className="text-sm font-semibold text-foreground tabular-nums">{formatWeight(weight)}</span>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">{count} {count === 1 ? "purchase" : "purchases"}</span>
                 </div>
-                <span className="text-[11px] tabular-nums text-muted-foreground">
+                <span className="text-sm tabular-nums text-muted-foreground">
                   {hasBullion ? fmtC(value) : "—"}
                 </span>
               </div>
             ))}
           </div>
+          <Link
+            href="/holdings"
+            className="block text-xs text-muted-foreground hover:text-foreground transition-colors pt-1.5 border-t border-border"
+          >
+            View holdings →
+          </Link>
         </div>
 
         {/* Tile 3: P/L without rewards */}

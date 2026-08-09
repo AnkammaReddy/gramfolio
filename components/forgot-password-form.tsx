@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { verifyRecoveryPin } from "@/app/actions/recover-password"
+import { authErrorToast, AuthSupportNote } from "@/components/auth-support"
 
 export function ForgotPasswordForm() {
   const router = useRouter()
@@ -26,29 +27,29 @@ export function ForgotPasswordForm() {
     const trimmedPin = pin.trim()
 
     if (!trimmedEmail) {
-      toast.error("Please enter your email address.")
+      authErrorToast("Please enter your email address.")
       return
     }
 
     if (!trimmedPin) {
-      toast.error("Please enter your recovery PIN.")
+      authErrorToast("Please enter your recovery PIN.")
       return
     }
 
     // Basic email format check
     if (!trimmedEmail.includes("@") || !trimmedEmail.includes(".")) {
-      toast.error("Please enter a valid email address.")
+      authErrorToast("Please enter a valid email address.")
       return
     }
 
     // PIN must be 4-6 digits
     if (trimmedPin.length < 4 || trimmedPin.length > 6) {
-      toast.error("PIN must be 4-6 digits.")
+      authErrorToast("PIN must be 4-6 digits.")
       return
     }
 
     if (!/^\d+$/.test(trimmedPin)) {
-      toast.error("PIN must contain only numbers.")
+      authErrorToast("PIN must contain only numbers.")
       return
     }
 
@@ -62,9 +63,9 @@ export function ForgotPasswordForm() {
         if (errorMsg === "NO_PIN_SET") {
           setPinNotSetError(true)
         } else if (errorMsg.includes("Too many attempts")) {
-          toast.error("Too many failed attempts. Please try again in 15 minutes.")
+          authErrorToast("Too many failed attempts. Please try again in 15 minutes.")
         } else {
-          toast.error(errorMsg)
+          authErrorToast(errorMsg)
         }
       }
     })
@@ -125,6 +126,7 @@ export function ForgotPasswordForm() {
                 If you have purchases and need to merge accounts, sign in and submit a request via the{" "}
                 <span className="font-medium text-foreground">Feedback</span> section once you regain access.
               </p>
+              <AuthSupportNote />
             </div>
           )}
 
@@ -182,6 +184,8 @@ export function ForgotPasswordForm() {
               Sign in
             </Link>
           </p>
+
+          <AuthSupportNote className="mt-4 text-center" />
         </div>
       </div>
     </div>
