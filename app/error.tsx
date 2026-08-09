@@ -1,0 +1,34 @@
+"use client"
+
+import { useEffect } from "react"
+import { Coins, RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
+  return (
+    <div className="flex min-h-svh flex-col items-center justify-center bg-background px-4 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground mb-6">
+        <Coins className="h-7 w-7" />
+      </div>
+      <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground mb-2">Error</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-balance">Something went wrong</h1>
+      <p className="mt-2 text-sm text-muted-foreground text-balance max-w-xs">
+        An unexpected error occurred. Try refreshing, or come back shortly.
+      </p>
+      <Button onClick={reset} className="mt-6 gap-2">
+        <RefreshCw className="h-4 w-4" />
+        Try again
+      </Button>
+    </div>
+  )
+}
