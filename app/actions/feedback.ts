@@ -40,6 +40,21 @@ export async function submitFeedback(input: FeedbackInput) {
   revalidatePath("/feedback")
 }
 
+/** Lightweight click tracking for card-referral contribute links (stored as contribute feedback). */
+export async function trackReferralClick(cardId: string) {
+  const userId = AUTH_DISABLED ? DEMO_USER.id : await getUserId()
+  assertNotDemo(userId)
+  const id = z.string().min(1).max(60).parse(cardId)
+  await db.insert(feedback).values({
+    userId,
+    category: "contribute",
+    message: `Clicked card referral link: ${id}. Contribute via card referral.`,
+    rating: null,
+  })
+  revalidatePath("/feedback")
+  revalidatePath("/admin/feedback")
+}
+
 export async function getMyFeedback() {
   const userId = AUTH_DISABLED ? DEMO_USER.id : await getUserId()
   return db
