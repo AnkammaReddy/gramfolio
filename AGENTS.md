@@ -40,3 +40,11 @@ GramFolio tracks **physical gold** buys and **card rewards/cashback**. Multi-use
 ## Env
 
 Required: `DATABASE_URL`, `BETTER_AUTH_SECRET`. Optional: `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+
+## Local / Cloud Agent dev
+
+`.cursor/` defines a self-contained environment (no external DB or secrets needed):
+- `install.sh` — starts a local Postgres, applies `scripts/dev-schema.sql`, `pnpm install` (frozen), and writes `.env.local` (local `DATABASE_URL` + generated `BETTER_AUTH_SECRET`).
+- `start.sh` — starts the Postgres cluster on boot; the `dev` terminal runs `pnpm dev`.
+- `scripts/dev-schema.sql` mirrors `lib/db/schema.ts` plus the raw-SQL extras (`user.banned`/`banReason`/`banExpires`, `session.impersonatedBy`, `demo_logins`). Keep it in sync when you change the schema. There is no Drizzle Kit migration pipeline.
+- pnpm is pinned to 9 via `packageManager`; the lockfile stores `overrides` (hono) that pnpm 10 no longer reads from `package.json`.
