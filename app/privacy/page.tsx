@@ -1,12 +1,14 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { Coins } from "lucide-react"
 
-export const metadata = {
-  title: "Privacy Policy — GramFolio",
+export const metadata: Metadata = {
+  title: "Privacy Policy",
   description: "How GramFolio collects, uses, and protects your personal data.",
+  alternates: { canonical: "/privacy" },
 }
 
-const LAST_UPDATED = "1 July 2025"
+const LAST_UPDATED = "11 August 2026"
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -43,10 +45,23 @@ export default function PrivacyPage() {
           <Section title="2. Data We Collect">
             <p>We collect only what is necessary to provide the service:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><span className="font-medium text-foreground">Account data</span> — your name and email address provided at sign-up.</li>
-              <li><span className="font-medium text-foreground">Portfolio data</span> — gold purchase records, weights, prices, cashback, and reward points you enter manually.</li>
-              <li><span className="font-medium text-foreground">Session data</span> — authentication tokens stored in secure cookies to keep you signed in.</li>
-              <li><span className="font-medium text-foreground">Usage data</span> — anonymous page view analytics via Vercel Analytics (no personally identifiable information).</li>
+              <li>
+                <span className="font-medium text-foreground">Account data</span> — the
+                display name and email address you provide at sign-up.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Portfolio data</span> — gold
+                purchase records, weights, prices, cashback, and reward points you enter
+                manually.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Session data</span> —
+                authentication tokens stored in cookies so you can stay signed in.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Usage data</span> — anonymous
+                page-view analytics via our hosting provider (no advertising profiles).
+              </li>
             </ul>
           </Section>
 
@@ -61,10 +76,15 @@ export default function PrivacyPage() {
 
           <Section title="4. Data Storage and Security">
             <p>
-              All data is stored in a PostgreSQL database hosted on Neon (neon.tech), which is located in AWS data centres. Data is encrypted at rest and in transit. Authentication is handled by Better Auth with bcrypt password hashing.
+              Your account and portfolio data are stored on managed cloud infrastructure
+              (currently Vercel for the app and Neon for the database). Data is encrypted
+              in transit. Passwords are stored only as irreversible hashes — we never keep
+              them in plain text.
             </p>
             <p>
-              We take reasonable technical and organisational measures to protect your data. However, no system is completely secure and we cannot guarantee absolute security.
+              We use reasonable technical and organisational measures to protect your
+              information. No online service can guarantee perfect security; please use a
+              strong unique password and keep your credentials private.
             </p>
           </Section>
 
@@ -73,23 +93,46 @@ export default function PrivacyPage() {
               We do not sell, trade, or share your personal data with third parties, except:
             </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><span className="font-medium text-foreground">Infrastructure providers</span> — Vercel (hosting), Neon (database) — who process data solely to provide their services and are bound by their own privacy policies.</li>
-              <li><span className="font-medium text-foreground">Legal obligations</span> — if required by Indian law or a valid court order.</li>
+              <li>
+                <span className="font-medium text-foreground">Infrastructure providers</span>{" "}
+                — such as our hosting and database providers — who process data only to run
+                the Service and under their own privacy terms.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Legal obligations</span> — if
+                required by Indian law or a valid court order.
+              </li>
             </ul>
           </Section>
 
           <Section title="6. Your Rights">
-            <p>Under the Information Technology Act, 2000 and SPDI Rules, 2011, you have the right to:</p>
+            <p>Under applicable Indian data-protection law, you can:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Access the personal data we hold about you.</li>
-              <li>Correct inaccurate data via your account settings.</li>
-              <li>Request deletion of your account and all associated data.</li>
+              <li>
+                <span className="font-medium text-foreground">Access</span> — view the
+                portfolio and account details available in your signed-in dashboard.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Correct</span> — update your
+                display name and preferences in Profile &amp; Settings.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Delete your account</span> —
+                permanently remove your login identity from Profile &amp; Settings (password
+                confirmation required). That deletes your user account, sessions, and
+                settings. Purchase history may remain in our systems without your name or
+                email attached, and cannot be opened by a new account with the same email.
+              </li>
             </ul>
             <p>
-              To exercise these rights, email us at{" "}
-              <a href="mailto:privacy@gramfolio.in" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
-                privacy@gramfolio.in
-              </a>.
+              For help with any of the above, email{" "}
+              <a
+                href="mailto:folio@gramfolio.in"
+                className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+              >
+                folio@gramfolio.in
+              </a>
+              .
             </p>
           </Section>
 
@@ -114,8 +157,8 @@ export default function PrivacyPage() {
           <Section title="10. Contact">
             <p>
               For any privacy-related questions, contact us at{" "}
-              <a href="mailto:privacy@gramfolio.in" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
-                privacy@gramfolio.in
+              <a href="mailto:folio@gramfolio.in" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
+                folio@gramfolio.in
               </a>.
             </p>
           </Section>
@@ -125,8 +168,8 @@ export default function PrivacyPage() {
           <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4">
             Terms of Service
           </Link>
-          <Link href="/sign-up" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Back to sign up
+          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Back to home
           </Link>
         </div>
       </div>

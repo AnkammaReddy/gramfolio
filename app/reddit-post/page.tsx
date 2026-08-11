@@ -42,9 +42,9 @@ Screenshots below, but the short version:
 
 You can log in right now with a read-only demo account:
 
-> **URL:** https://v0-gramfolio.vercel.app/
-> **Email:** demo@gramfolio.app
-> **Password:** GramFolio@Demo
+> **URL:** https://gramfolio.in/sign-in?demo=1
+>
+> Or open https://gramfolio.in and tap **Try demo**.
 
 Sessions last 15 minutes and the data is sample data only — you cannot make changes. Just enough to get a feel for the screens.
 

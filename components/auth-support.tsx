@@ -5,8 +5,8 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 export const AUTH_SUPPORT_EMAIL = "folio@gramfolio.in"
-export const AUTH_SUPPORT_REDDIT_URL = "https://www.reddit.com/user/dilly_reddy/"
-export const AUTH_SUPPORT_REDDIT_LABEL = "Reddit (u/dilly_reddy)"
+export const AUTH_SUPPORT_REDDIT_URL = "https://www.reddit.com/user/gramfolio/"
+export const AUTH_SUPPORT_REDDIT_LABEL = "Reddit (u/gramfolio)"
 
 /** Toast for auth-flow errors — short auto-dismiss; contact note is on the form footer. */
 export function authErrorToast(message: string) {

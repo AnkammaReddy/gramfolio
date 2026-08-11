@@ -1,9 +1,11 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { Coins } from "lucide-react"
 
-export const metadata = {
-  title: "Terms of Service — GramFolio",
+export const metadata: Metadata = {
+  title: "Terms of Service",
   description: "Terms and conditions for using GramFolio.",
+  alternates: { canonical: "/terms" },
 }
 
 const LAST_UPDATED = "1 July 2025"
@@ -71,13 +73,21 @@ export default function TermsPage() {
 
           <Section title="5. Your Data">
             <p>
-              You own the data you enter into GramFolio. We do not claim any ownership over your portfolio data. By using the Service you grant us a limited licence to store and process your data solely to provide the Service to you.
+              You own the data you enter into GramFolio. We do not claim ownership over your
+              portfolio entries. By using the Service you grant us a limited licence to store
+              and process that data only to provide the Service to you.
             </p>
             <p>
-              You can request deletion of your account and all associated data at any time by contacting us at{" "}
-              <a href="mailto:privacy@gramfolio.in" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
-                privacy@gramfolio.in
-              </a>.
+              You can delete your account from Profile &amp; Settings (password required), or
+              email{" "}
+              <a
+                href="mailto:folio@gramfolio.in"
+                className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+              >
+                folio@gramfolio.in
+              </a>
+              . Deleting your account removes your login identity; see the Privacy Policy for
+              what is removed versus retained in de-linked form.
             </p>
           </Section>
 
@@ -111,8 +121,8 @@ export default function TermsPage() {
           <Section title="10. Contact">
             <p>
               For any questions about these Terms, contact us at{" "}
-              <a href="mailto:privacy@gramfolio.in" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
-                privacy@gramfolio.in
+              <a href="mailto:folio@gramfolio.in" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
+                folio@gramfolio.in
               </a>.
             </p>
           </Section>
@@ -122,8 +132,8 @@ export default function TermsPage() {
           <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4">
             Privacy Policy
           </Link>
-          <Link href="/sign-up" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Back to sign up
+          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Back to home
           </Link>
         </div>
       </div>
