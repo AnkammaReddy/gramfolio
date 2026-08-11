@@ -2,7 +2,23 @@ import { NextRequest, NextResponse } from "next/server"
 import { AUTH_DISABLED } from "@/lib/auth-config"
 
 // Public routes that do not require a session
-const PUBLIC_PATHS = ["/sign-in", "/sign-up", "/api/auth", "/invite", "/set-password", "/forgot-password", "/reset-password"]
+const PUBLIC_PATHS = [
+  "/",
+  "/faq",
+  "/how-it-works",
+  "/privacy",
+  "/terms",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/sign-in",
+  "/sign-up",
+  "/api/auth",
+  "/invite",
+  "/set-password",
+  "/forgot-password",
+  "/reset-password",
+  "/manifest.webmanifest",
+]
 
 // Allowed vercel.app hostnames — your stable named URLs that should never be blocked
 // e.g. "v0-gramfolio.vercel.app"
@@ -38,9 +54,11 @@ const BOT_UA_PATTERNS = [
 
 // Matches only exact path or sub-paths with a real "/" boundary
 function isPublic(pathname: string) {
-  return PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
-  ) && !pathname.includes(".segments")
+  if (pathname.includes(".segments")) return false
+  return PUBLIC_PATHS.some((p) => {
+    if (p === "/") return pathname === "/"
+    return pathname === p || pathname.startsWith(p + "/")
+  })
 }
 
 function isBotUserAgent(ua: string | null): boolean {
@@ -100,7 +118,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all paths except Next.js internals and static files
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)).*)",
+    // Match all paths except Next.js internals, static assets, and crawl files
+    "/((?!_next/static|_next/image|favicon.ico|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)).*)",
   ],
 }

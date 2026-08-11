@@ -1,7 +1,14 @@
 import { redirect } from "next/navigation"
+import type { Metadata } from "next"
 import { getSession } from "@/lib/session"
 import { AuthForm } from "@/components/auth-form"
 import { validateInviteToken } from "@/app/actions/invites"
+
+export const metadata: Metadata = {
+  title: "Sign up",
+  description: "Create a GramFolio account to track physical gold purchases and card rewards.",
+  alternates: { canonical: "/sign-up" },
+}
 
 export default async function SignUpPage({
   searchParams,
