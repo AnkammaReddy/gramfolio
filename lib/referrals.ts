@@ -23,4 +23,13 @@ export const SCAPIA_REFERRAL: CardReferral = {
     "https://apply.scapia.cards/landing_page?referral_code=wztacg",
 }
 
+/** CRED app Refer & Earn invite (membership) — not a bank CC apply URL. */
+export const CRED_APP_REFERRAL = {
+  id: "cred-app",
+  name: "CRED",
+  url:
+    process.env.NEXT_PUBLIC_CRED_REFERRAL_URL?.trim() ||
+    "https://app.cred.club/spQx/ecohtl1x",
+} as const
+
 export const CARD_REFERRALS: CardReferral[] = [SCAPIA_REFERRAL]

@@ -107,7 +107,7 @@ export function AdminInsightsClient({ insights: initial }: { insights: InsightRo
             />
             <textarea
               rows={4}
-              placeholder="Body — explain the insight and what makes it useful..."
+              placeholder="Body — short text, or paste only a path/URL (e.g. /strategies/flipkart-gv-cred-gold) to show as a link"
               value={form.body}
               onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
               maxLength={600}
