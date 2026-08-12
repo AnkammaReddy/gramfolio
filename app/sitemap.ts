@@ -3,7 +3,16 @@ import { SITE_URL } from "@/lib/site"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()
-  const paths = ["", "/faq", "/how-it-works", "/privacy", "/terms", "/sign-in", "/sign-up"]
+  const paths = [
+    "",
+    "/faq",
+    "/how-it-works",
+    "/strategies/flipkart-gv-cred-gold",
+    "/privacy",
+    "/terms",
+    "/sign-in",
+    "/sign-up",
+  ]
 
   return paths.map((path) => ({
     url: `${SITE_URL}${path}`,

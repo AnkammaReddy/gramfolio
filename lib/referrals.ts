@@ -23,4 +23,24 @@ export const SCAPIA_REFERRAL: CardReferral = {
     "https://apply.scapia.cards/landing_page?referral_code=wztacg",
 }
 
-export const CARD_REFERRALS: CardReferral[] = [SCAPIA_REFERRAL]
+/** CRED app Refer & Earn invite (membership) — not a bank CC apply URL. */
+export const CRED_APP_REFERRAL = {
+  id: "cred-app",
+  name: "CRED",
+  url:
+    process.env.NEXT_PUBLIC_CRED_REFERRAL_URL?.trim() ||
+    "https://app.cred.club/spQx/ecohtl1x",
+} as const
+
+/** SBI Cashback Credit Card invite. */
+export const SBI_CASHBACK_REFERRAL: CardReferral = {
+  id: "sbi-cashback",
+  name: "SBI Cashback Credit Card",
+  shortName: "SBI Cashback",
+  runwayHint: "hosting runway varies",
+  url:
+    process.env.NEXT_PUBLIC_SBI_CASHBACK_REFERRAL_URL?.trim() ||
+    "https://www.sbicard.com/invite/jisAaPVRqfD",
+}
+
+export const CARD_REFERRALS: CardReferral[] = [SCAPIA_REFERRAL, SBI_CASHBACK_REFERRAL]

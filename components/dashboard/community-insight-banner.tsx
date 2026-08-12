@@ -1,11 +1,90 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { ThumbsUp, ThumbsDown, Lightbulb, X } from "lucide-react"
+import { useState, useTransition, type ReactNode } from "react"
+import Link from "next/link"
+import { ThumbsUp, ThumbsDown, Lightbulb, X, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { reactToInsight, hideInsight, type InsightWithReactions } from "@/app/actions/community-insight"
 import { toast } from "sonner"
 import { useIsDemo } from "@/components/demo-mode-provider"
+
+const URL_IN_TEXT = /(https?:\/\/[^\s<>"']+|\/strategies\/[a-zA-Z0-9/_-]+)/g
+
+/**
+ * Safe hrefs only:
+ * - https?://… (no javascript:/data:/protocol-relative)
+ * - /strategies/… relative paths (public strategy articles)
+ * Members cannot author insights — only admins — so the main abuse surface is a
+ * compromised admin posting a phishing https URL (same as any CMS).
+ */
+function isSafeInsightHref(raw: string): boolean {
+  const href = raw.trim().replace(/[.,);]+$/, "")
+  if (!href || href.length > 500) return false
+  if (href.startsWith("/strategies/")) {
+    // single path segment tree, no // or ..
+    return /^\/strategies\/[a-zA-Z0-9/_-]+$/.test(href) && !href.includes("..")
+  }
+  try {
+    const u = new URL(href)
+    return u.protocol === "http:" || u.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
+/** Body that is only a path or absolute URL. */
+function parseInsightHref(body: string): string | null {
+  const t = body.trim()
+  if (!t || t.includes("\n") || /\s/.test(t)) return null
+  return isSafeInsightHref(t) ? t.replace(/[.,);]+$/, "") : null
+}
+
+function linkifyBody(body: string): ReactNode[] {
+  const parts: ReactNode[] = []
+  let last = 0
+  let match: RegExpExecArray | null
+  const re = new RegExp(URL_IN_TEXT.source, "g")
+  while ((match = re.exec(body)) !== null) {
+    if (match.index > last) {
+      parts.push(body.slice(last, match.index))
+    }
+    const candidate = match[0]
+    const href = candidate.replace(/[.,);]+$/, "")
+    const trailing = candidate.slice(href.length)
+    if (!isSafeInsightHref(href)) {
+      parts.push(candidate)
+      last = match.index + candidate.length
+      continue
+    }
+    const external = href.startsWith("http")
+    parts.push(
+      external ? (
+        <a
+          key={`${href}-${match.index}`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-amber-700 underline underline-offset-2 hover:opacity-80 dark:text-amber-400"
+        >
+          {href}
+        </a>
+      ) : (
+        <Link
+          key={`${href}-${match.index}`}
+          href={href}
+          className="text-amber-700 underline underline-offset-2 hover:opacity-80 dark:text-amber-400"
+        >
+          {href}
+        </Link>
+      ),
+    )
+    if (trailing) parts.push(trailing)
+    last = match.index + match[0].length
+  }
+  if (last < body.length) parts.push(body.slice(last))
+  return parts.length > 0 ? parts : [body]
+}
+
 
 export function CommunityInsightBanner({ insight }: { insight: InsightWithReactions }) {
   const isDemo = useIsDemo()
@@ -20,7 +99,9 @@ export function CommunityInsightBanner({ insight }: { insight: InsightWithReacti
 
   if (hidden) return null
 
-  const bodyLong = insight.body.length > 100 || insight.body.includes("\n")
+  const hrefOnly = parseInsightHref(insight.body)
+  const bodyLong = !hrefOnly && (insight.body.length > 100 || insight.body.includes("\n"))
+  const externalOnly = hrefOnly?.startsWith("http")
 
   function handleReact(reaction: "like" | "dislike") {
     if (isDemo) { toast.info("Read-only in demo mode"); return }
@@ -53,23 +134,46 @@ export function CommunityInsightBanner({ insight }: { insight: InsightWithReacti
 
       <div className="flex-1 min-w-0 space-y-0.5">
         <span className="text-sm text-foreground leading-snug">{insight.title}</span>
-        <p
-          className={cn(
-            "text-xs text-muted-foreground leading-relaxed",
-            !expanded && "line-clamp-1",
-            expanded && "whitespace-pre-wrap",
-          )}
-        >
-          {insight.body}
-        </p>
-        {bodyLong && (
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="text-xs text-foreground/80 underline underline-offset-2 hover:text-foreground"
-          >
-            {expanded ? "Show less" : "Read more"}
-          </button>
+        {hrefOnly ? (
+          externalOnly ? (
+            <a
+              href={hrefOnly}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-amber-700 underline underline-offset-2 hover:opacity-80 dark:text-amber-400"
+            >
+              Read full strategy
+              <ExternalLink className="h-3 w-3" aria-hidden />
+            </a>
+          ) : (
+            <Link
+              href={hrefOnly}
+              className="inline-flex items-center gap-1 text-xs text-amber-700 underline underline-offset-2 hover:opacity-80 dark:text-amber-400"
+            >
+              Read full strategy
+            </Link>
+          )
+        ) : (
+          <>
+            <p
+              className={cn(
+                "text-xs text-muted-foreground leading-relaxed",
+                !expanded && "line-clamp-1",
+                expanded && "whitespace-pre-wrap",
+              )}
+            >
+              {linkifyBody(insight.body)}
+            </p>
+            {bodyLong && (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                className="text-xs text-foreground/80 underline underline-offset-2 hover:text-foreground"
+              >
+                {expanded ? "Show less" : "Read more"}
+              </button>
+            )}
+          </>
         )}
       </div>
 
