@@ -145,7 +145,7 @@ export function DashboardCharts({
               )}
             />
             <Area
-              type="linear"
+              type="monotone"
               dataKey="invested"
               name="Invested"
               stroke="var(--color-chart-5)"
@@ -155,7 +155,7 @@ export function DashboardCharts({
               activeDot={{ r: 5 }}
             />
             <Area
-              type="linear"
+              type="monotone"
               dataKey="bullion"
               name="Bullion Value"
               stroke="var(--color-chart-1)"
@@ -248,7 +248,7 @@ export function DashboardCharts({
                   )}
                 />
                 <Area
-                  type="linear"
+                  type="monotone"
                   dataKey="pnl"
                   name="Profit / Loss"
                   stroke="url(#strokePnl)"
