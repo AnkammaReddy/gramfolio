@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { isValidPurity } from "./purity"
 
 const numberish = z.coerce.number().refine((n) => !Number.isNaN(n), "Must be a number")
 const nonNegative = numberish.refine((n) => n >= 0, "Must be 0 or greater")
@@ -62,7 +63,10 @@ export const purchaseSchema = z.object({
   merchant: safeText(200),
   brand: safeText(120),
   category: z.enum(["Coin", "Bar", "Jewellery"]).default("Coin"),
-  purity: z.string().default("999"),
+  purity: z
+    .string()
+    .default("999")
+    .refine(isValidPurity, "Purity must be an integer from 1 to 999 (e.g. 999, 965, 916)"),
   weightGrams: nonNegative,
   quantity: z.coerce.number().int().min(1, "Quantity must be at least 1").default(1),
   purchasePrice: nonNegative,

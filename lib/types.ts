@@ -16,7 +16,7 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
 export const WEBSITES = ["Flipkart", "Ajio", "Myntra", "Amazon", "Tata CLiQ", "Other"]
 export const BRANDS = ["Tanishq", "Kalyan", "Malabar", "Bhima", "Muthoot", "Joyalukkas", "MMTC-PAMP", "Other"]
-export const PURITIES = ["999", "995", "916"]
+export { PURITY_PRESETS, PURITIES, PURITY_OPTIONS, PURITY_CUSTOM, PURITY_LABELS } from "./purity"
 export const CATEGORIES: Category[] = ["Coin", "Bar", "Jewellery"]
 export const CASHBACK_STATUSES: CashbackStatus[] = ["Pending", "Credited", "Missing"]
 

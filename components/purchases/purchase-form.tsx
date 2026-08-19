@@ -36,7 +36,14 @@ import {
   totalWeight,
 } from "@/lib/calculations"
 import {
-  PURITIES,
+  PURITY_OPTIONS,
+  PURITY_CUSTOM,
+  PURITY_LABELS,
+  isValidPurity,
+  splitPurityForForm,
+  resolvePurityFromForm,
+} from "@/lib/purity"
+import {
   CATEGORIES,
   PAYMENT_METHODS,
   CASHBACK_STATUSES,
@@ -68,6 +75,8 @@ type FormState = {
   merchant: string
   brand: string
   category: string
+  purityChoice: string
+  customPurity: string
   purity: string
   weightGrams: number
   quantity: number
@@ -114,6 +123,7 @@ type FormState = {
 const today = () => new Date().toISOString().slice(0, 10)
 
 function initState(p?: PurchaseDTO): FormState {
+  const { choice, custom } = splitPurityForForm(p?.purity ?? "999")
   return {
     purchaseDate: p?.purchaseDate ?? today(),
     deliveredDate: p?.deliveredDate ?? "",
@@ -121,6 +131,8 @@ function initState(p?: PurchaseDTO): FormState {
     merchant: p?.merchant ?? "",
     brand: p?.brand ?? "",
     category: p?.category ?? "Coin",
+    purityChoice: choice,
+    customPurity: custom,
     purity: p?.purity ?? "999",
     weightGrams: p?.weightGrams ?? 1,
     quantity: p?.quantity ?? 1,
@@ -286,6 +298,11 @@ export function PurchaseForm({
       toast.error("Purchase price must be greater than 0")
       return
     }
+    const purity = resolvePurityFromForm(form.purityChoice, form.customPurity)
+    if (!isValidPurity(purity)) {
+      toast.error("Enter a valid custom purity (integer 1–999, e.g. 965 or 875)")
+      return
+    }
     const payload: PurchaseInput = {
       assetType: "gold",
       purchaseDate: form.purchaseDate,
@@ -294,7 +311,7 @@ export function PurchaseForm({
       merchant: form.merchant || null,
       brand: form.brand || null,
       category: form.category as "Coin" | "Bar" | "Jewellery",
-      purity: form.purity,
+      purity,
       weightGrams: form.weightGrams,
       quantity: form.quantity,
       purchasePrice: form.purchasePrice,
@@ -469,10 +486,28 @@ export function PurchaseForm({
                 />
                 <SelectField
                   label="Purity"
-                  value={form.purity}
-                  onChange={(v) => set("purity", v)}
-                  options={PURITIES}
+                  value={form.purityChoice}
+                  onChange={(v) => set("purityChoice", v)}
+                  options={PURITY_OPTIONS}
+                  optionLabels={PURITY_LABELS}
                 />
+                {form.purityChoice === PURITY_CUSTOM && (
+                  <Field label="Custom purity">
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      step="1"
+                      min={1}
+                      max={999}
+                      placeholder="e.g. 965"
+                      value={form.customPurity}
+                      onChange={(e) => set("customPurity", e.target.value)}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Fineness out of 1000. Bullion ₹/g is derived from 999 spot (× purity/999).
+                    </p>
+                  </Field>
+                )}
                 <NumberField
                   label="Weight (g) / unit"
                   value={form.weightGrams}

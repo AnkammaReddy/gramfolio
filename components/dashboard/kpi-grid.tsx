@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import type { PurchaseDTO, GoldPriceDTO } from "@/lib/types"
 import { computeTotals } from "@/lib/calculations"
 import { latestPrice, latestPriceEntry } from "@/lib/analytics"
+import { deriveBullionFrom999 } from "@/lib/purity"
 
 import { useCurrency } from "@/components/currency-provider"
 import { formatCurrency, formatWeight } from "@/lib/format"
@@ -169,7 +170,7 @@ export function KpiGrid({
     for (const p of purchases) {
       const w = p.weightGrams * p.quantity
       const purityPrice = latestPrice(prices, p.purity) ||
-        (bullion > 0 ? bullion * (Number(p.purity) / 999) : 0)
+        (bullion > 0 ? deriveBullionFrom999(bullion, p.purity) : 0)
       const v = w * purityPrice
       const existing = map.get(p.purity)
       if (existing) {

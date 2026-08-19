@@ -1,5 +1,6 @@
 import type { PurchaseDTO, GoldPriceDTO, GraphMode } from "./types"
 import { costBasis, totalWeight } from "./calculations"
+import { deriveBullionFrom999 } from "./purity"
 
 const monthKey = (d: string) => d.slice(0, 7) // YYYY-MM
 
@@ -30,7 +31,7 @@ export function priceAsOfWithSource(
     const base999 = prices.find((p) => p.purity === "999" && p.priceDate === date)
     if (base999) {
       return {
-        pricePerGram: base999.pricePerGram * (Number(purity) / 999),
+        pricePerGram: deriveBullionFrom999(base999.pricePerGram, purity),
         source: "derived_999",
       }
     }
@@ -75,7 +76,7 @@ function priceCarryForward(prices: GoldPriceDTO[], date: string, purity: string)
   // Prefer 999-derived when 999 is fresher than exact-purity entry (same as latestPrice logic)
   if (best999) {
     if (!bestExact || best999.priceDate > bestExact.priceDate) {
-      return best999.pricePerGram * (Number(purity) / 999)
+      return deriveBullionFrom999(best999.pricePerGram, purity)
     }
   }
   return bestExact?.pricePerGram ?? 0
@@ -101,7 +102,7 @@ export function latestPrice(prices: GoldPriceDTO[], purity = "999"): number {
       // derive from 999 — this prevents stale direct entries (e.g. an old 916 price from 2024)
       // from overriding a fresher 999-based derivation.
       if (!best || base999.priceDate > best.priceDate) {
-        return base999.pricePerGram * (Number(purity) / 999)
+        return deriveBullionFrom999(base999.pricePerGram, purity)
       }
     }
 
