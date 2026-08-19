@@ -8,6 +8,7 @@ import {
   BarChart,
   CartesianGrid,
   ReferenceLine,
+  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -143,6 +144,34 @@ export function DashboardCharts({
               fill="url(#fillBullion)"
               strokeWidth={2}
             />
+            {overTime
+              .filter((d) => d.isPurchase)
+              .map((d) => (
+                <ReferenceDot
+                  key={`purchase-${d.date}`}
+                  x={d.date}
+                  y={d.bullion}
+                  r={5}
+                  fill="var(--color-chart-1)"
+                  stroke="var(--color-background)"
+                  strokeWidth={2}
+                  ifOverflow="extendDomain"
+                />
+              ))}
+            {overTime
+              .filter((d) => d.isPurchase)
+              .map((d) => (
+                <ReferenceDot
+                  key={`purchase-invested-${d.date}`}
+                  x={d.date}
+                  y={d.invested}
+                  r={4}
+                  fill="var(--color-chart-5)"
+                  stroke="var(--color-background)"
+                  strokeWidth={2}
+                  ifOverflow="extendDomain"
+                />
+              ))}
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>

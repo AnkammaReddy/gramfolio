@@ -130,6 +130,8 @@ export type TimePoint = {
   bullion: number
   pnl: number
   cumulativeWeight: number
+  /** True when one or more purchases occurred on this date. */
+  isPurchase: boolean
 }
 
 /**
@@ -153,20 +155,24 @@ export function portfolioOverTime(
   prices: GoldPriceDTO[],
   mode: GraphMode,
 ): TimePoint[] {
-  if (purchases.length === 0 || prices.length === 0) return []
+  if (purchases.length === 0) return []
 
   const sorted = [...purchases].sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate))
   const today = new Date().toISOString().slice(0, 10)
+  const purchaseDates = new Set(sorted.map((p) => p.purchaseDate))
 
-  // X-axis: unique purchase dates + today only (keep it simple).
+  // Timeline: every purchase date, every 999 bullion price date, and today.
   const dateSet = new Set<string>()
   for (const p of sorted) dateSet.add(p.purchaseDate)
+  for (const pr of prices) {
+    if (pr.purity === "999") dateSet.add(pr.priceDate)
+  }
   dateSet.add(today)
   const allDates = [...dateSet].sort((a, b) => a.localeCompare(b))
 
   let invested = 0
   let pi = 0
-  const holdings: { weight: number; purity: string }[] = []
+  const holdings: { weight: number; purity: string; fallbackPricePerGram: number }[] = []
   const points: TimePoint[] = []
 
   for (const date of allDates) {
@@ -174,7 +180,11 @@ export function portfolioOverTime(
     while (pi < sorted.length && sorted[pi].purchaseDate <= date) {
       const p = sorted[pi]
       invested += costBasis(p, mode)
-      holdings.push({ weight: totalWeight(p.weightGrams, p.quantity), purity: p.purity })
+      holdings.push({
+        weight: totalWeight(p.weightGrams, p.quantity),
+        purity: p.purity,
+        fallbackPricePerGram: p.pricePerGram || 0,
+      })
       pi++
     }
     if (holdings.length === 0) continue
@@ -183,13 +193,14 @@ export function portfolioOverTime(
     let bullion = 0
     let weight = 0
     for (const h of holdings) {
-      const price = priceCarryForward(prices, date, h.purity)
+      const spot = priceCarryForward(prices, date, h.purity)
+      const price = spot > 0 ? spot : h.fallbackPricePerGram
       bullion += h.weight * price
       weight += h.weight
     }
 
-    // Skip if no bullion price available for this date yet.
-    if (bullion === 0) continue
+    // Always plot purchase dates (markers + invested steps). Other dates need bullion data.
+    if (bullion === 0 && !purchaseDates.has(date)) continue
 
     points.push({
       date,
@@ -197,6 +208,7 @@ export function portfolioOverTime(
       bullion: round(bullion),
       pnl: round(bullion - invested),
       cumulativeWeight: round(weight),
+      isPurchase: purchaseDates.has(date),
     })
   }
 
