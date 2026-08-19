@@ -8,13 +8,13 @@ import {
   BarChart,
   CartesianGrid,
   ReferenceLine,
-  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts"
 import type { PurchaseDTO, GoldPriceDTO } from "@/lib/types"
+import type { TimePoint } from "@/lib/analytics"
 import { useGraphMode } from "@/components/graph-mode-provider"
 import { useCurrency } from "@/components/currency-provider"
 import { formatCurrency, formatDate } from "@/lib/format"
@@ -56,6 +56,22 @@ const axisProps = {
   fontSize: 11,
   tickLine: false,
   axisLine: false,
+}
+
+function purchaseDot(fill: string) {
+  return (props: { cx?: number; cy?: number; payload?: TimePoint }) => {
+    if (!props.payload?.isPurchase || props.cx == null || props.cy == null) return <g />
+    return (
+      <circle
+        cx={props.cx}
+        cy={props.cy}
+        r={4}
+        fill={fill}
+        stroke="var(--color-background)"
+        strokeWidth={2}
+      />
+    )
+  }
 }
 
 export function DashboardCharts({
@@ -129,49 +145,25 @@ export function DashboardCharts({
               )}
             />
             <Area
-              type="monotone"
+              type="linear"
               dataKey="invested"
               name="Invested"
               stroke="var(--color-chart-5)"
               fill="url(#fillInvested)"
               strokeWidth={2}
+              dot={purchaseDot("var(--color-chart-5)")}
+              activeDot={{ r: 5 }}
             />
             <Area
-              type="monotone"
+              type="linear"
               dataKey="bullion"
               name="Bullion Value"
               stroke="var(--color-chart-1)"
               fill="url(#fillBullion)"
               strokeWidth={2}
+              dot={purchaseDot("var(--color-chart-1)")}
+              activeDot={{ r: 5 }}
             />
-            {overTime
-              .filter((d) => d.isPurchase)
-              .map((d) => (
-                <ReferenceDot
-                  key={`purchase-${d.date}`}
-                  x={d.date}
-                  y={d.bullion}
-                  r={5}
-                  fill="var(--color-chart-1)"
-                  stroke="var(--color-background)"
-                  strokeWidth={2}
-                  ifOverflow="extendDomain"
-                />
-              ))}
-            {overTime
-              .filter((d) => d.isPurchase)
-              .map((d) => (
-                <ReferenceDot
-                  key={`purchase-invested-${d.date}`}
-                  x={d.date}
-                  y={d.invested}
-                  r={4}
-                  fill="var(--color-chart-5)"
-                  stroke="var(--color-background)"
-                  strokeWidth={2}
-                  ifOverflow="extendDomain"
-                />
-              ))}
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -256,12 +248,13 @@ export function DashboardCharts({
                   )}
                 />
                 <Area
-                  type="monotone"
+                  type="linear"
                   dataKey="pnl"
                   name="Profit / Loss"
                   stroke="url(#strokePnl)"
                   fill="url(#fillPnl)"
                   strokeWidth={2}
+                  dot={purchaseDot("var(--color-chart-2)")}
                 />
               </AreaChart>
             </ResponsiveContainer>

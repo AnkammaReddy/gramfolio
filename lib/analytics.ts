@@ -82,6 +82,24 @@ function priceCarryForward(prices: GoldPriceDTO[], date: string, purity: string)
   return bestExact?.pricePerGram ?? 0
 }
 
+/** Earliest 999 spot on or after a date — chart-only when no prior spot exists yet. */
+function priceForwardFill999(prices: GoldPriceDTO[], date: string, purity: string): number {
+  let best999: GoldPriceDTO | null = null
+  for (const p of prices) {
+    if (p.purity !== "999") continue
+    if (p.priceDate >= date && (!best999 || p.priceDate < best999.priceDate)) best999 = p
+  }
+  if (!best999) return 0
+  return purity === "999" ? best999.pricePerGram : deriveBullionFrom999(best999.pricePerGram, purity)
+}
+
+/** Chart valuation: carry-forward spot, then forward-fill so early purchases still plot. */
+function priceForChartPlot(prices: GoldPriceDTO[], date: string, purity: string): number {
+  const back = priceCarryForward(prices, date, purity)
+  if (back > 0) return back
+  return priceForwardFill999(prices, date, purity)
+}
+
 export function latestPrice(prices: GoldPriceDTO[], purity = "999"): number {
   let best: GoldPriceDTO | null = null
   for (const p of prices) {
@@ -138,13 +156,10 @@ export type TimePoint = {
  * Portfolio value over time.
  *
  * Strategy:
- * - Build a timeline from purchase dates plus today (one point per buy, plus current value).
- * - `invested` accumulates the cost basis for all purchases made on or before
- *   each date point (never decreases).
- * - `bullion` values each holding using the latest known bullion price for its
- *   purity on or before that date (carry-forward from 999 spot).
- * - Purchase dates are always plotted; if no spot exists yet, falls back to
- *   purchase price/g for chart valuation only.
+ * - Build a timeline from purchase dates plus today.
+ * - Every purchase date is always plotted (visible nodes on the chart).
+ * - Bullion uses carry-forward 999 spot; purchases before the first spot entry
+ *   forward-fill from the earliest available 999 price (chart only).
  */
 export function portfolioOverTime(
   purchases: PurchaseDTO[],
@@ -180,12 +195,14 @@ export function portfolioOverTime(
     let bullion = 0
     let weight = 0
     for (const h of holdings) {
-      const price = priceCarryForward(prices, date, h.purity)
+      const price = priceForChartPlot(prices, date, h.purity)
       bullion += h.weight * price
       weight += h.weight
     }
 
-    if (bullion === 0) continue
+    const isPurchase = purchaseDates.has(date)
+    // Always plot purchase dates; skip today only when bullion cannot be valued.
+    if (bullion === 0 && !isPurchase) continue
 
     points.push({
       date,
@@ -193,7 +210,7 @@ export function portfolioOverTime(
       bullion: round(bullion),
       pnl: round(bullion - invested),
       cumulativeWeight: round(weight),
-      isPurchase: purchaseDates.has(date),
+      isPurchase,
     })
   }
 
@@ -345,10 +362,10 @@ export function groupBy(
     .sort((a, b) => b.spend - a.spend)
 }
 
-export type DailyPnl = { date: string; pnl: number }
+export type DailyPnl = { date: string; pnl: number; isPurchase: boolean }
 
 export function dailyPnl(points: TimePoint[]): DailyPnl[] {
-  return points.map((p) => ({ date: p.date, pnl: p.pnl }))
+  return points.map((p) => ({ date: p.date, pnl: p.pnl, isPurchase: p.isPurchase }))
 }
 
 function round(n: number) {
