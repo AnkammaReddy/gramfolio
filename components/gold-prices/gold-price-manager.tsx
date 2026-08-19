@@ -30,6 +30,7 @@ import {
 import { useCurrency } from "@/components/currency-provider"
 import { formatCurrency, formatDate } from "@/lib/format"
 import type { GoldPriceDTO } from "@/lib/types"
+import { PURITY_PRESETS, deriveBullionFrom999, PURITY_LABELS } from "@/lib/purity"
 import { upsertGoldPrice, deleteGoldPrice } from "@/app/actions/gold-prices"
 import { cn } from "@/lib/utils"
 
@@ -71,9 +72,7 @@ export function GoldPriceManager({ prices }: { prices: GoldPriceDTO[] }) {
     (p) => p.priceDate === priceDate && p.purity === "999"
   )
 
-  // Derived prices shown in the form
-  const price995 = pricePerGram > 0 ? Math.round(pricePerGram * (995 / 999) * 100) / 100 : 0
-  const price916 = pricePerGram > 0 ? Math.round(pricePerGram * (916 / 999) * 100) / 100 : 0
+  const derivedPurities = PURITY_PRESETS.filter((p) => p !== "999")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -166,9 +165,16 @@ export function GoldPriceManager({ prices }: { prices: GoldPriceDTO[] }) {
             </div>
             {pricePerGram > 0 && (
               <div className="rounded-md bg-muted/50 px-3 py-2 text-xs space-y-1 text-muted-foreground">
-                <p className="font-medium text-foreground">Derived prices</p>
-                <div className="flex justify-between"><span>995 (BIS Hallmark)</span><span className="tabular-nums">{fmt(price995)}</span></div>
-                <div className="flex justify-between"><span>916 (22K)</span><span className="tabular-nums">{fmt(price916)}</span></div>
+                <p className="font-medium text-foreground">Derived prices (from 999)</p>
+                {derivedPurities.map((purity) => {
+                  const derived = Math.round(deriveBullionFrom999(pricePerGram, purity) * 100) / 100
+                  return (
+                    <div key={purity} className="flex justify-between">
+                      <span>{PURITY_LABELS[purity] ?? purity}</span>
+                      <span className="tabular-nums">{fmt(derived)}</span>
+                    </div>
+                  )
+                })}
               </div>
             )}
             <div className="space-y-1.5">

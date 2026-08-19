@@ -1,5 +1,6 @@
 import type { PurchaseDTO, GoldPriceDTO, GraphMode } from "./types"
 import { costBasis, totalWeight } from "./calculations"
+import { deriveBullionFrom999 } from "./purity"
 
 const monthKey = (d: string) => d.slice(0, 7) // YYYY-MM
 
@@ -30,7 +31,7 @@ export function priceAsOfWithSource(
     const base999 = prices.find((p) => p.purity === "999" && p.priceDate === date)
     if (base999) {
       return {
-        pricePerGram: base999.pricePerGram * (Number(purity) / 999),
+        pricePerGram: deriveBullionFrom999(base999.pricePerGram, purity),
         source: "derived_999",
       }
     }
@@ -75,10 +76,29 @@ function priceCarryForward(prices: GoldPriceDTO[], date: string, purity: string)
   // Prefer 999-derived when 999 is fresher than exact-purity entry (same as latestPrice logic)
   if (best999) {
     if (!bestExact || best999.priceDate > bestExact.priceDate) {
-      return best999.pricePerGram * (Number(purity) / 999)
+      return deriveBullionFrom999(best999.pricePerGram, purity)
     }
   }
   return bestExact?.pricePerGram ?? 0
+}
+
+/**
+ * Bullion ₹/g for a chart/history date.
+ * - Prefer carry-forward 999 spot (purity-adjusted).
+ * - Historical dates only: fall back to purchase price/g when no spot exists yet.
+ * - Today: spot only — never purchase price/g (current portfolio value).
+ */
+function bullionRateOnDate(
+  prices: GoldPriceDTO[],
+  date: string,
+  purity: string,
+  purchasePricePerGram: number,
+  isToday: boolean,
+): number {
+  const spot = priceCarryForward(prices, date, purity)
+  if (spot > 0) return spot
+  if (isToday) return 0
+  return purchasePricePerGram
 }
 
 export function latestPrice(prices: GoldPriceDTO[], purity = "999"): number {
@@ -101,7 +121,7 @@ export function latestPrice(prices: GoldPriceDTO[], purity = "999"): number {
       // derive from 999 — this prevents stale direct entries (e.g. an old 916 price from 2024)
       // from overriding a fresher 999-based derivation.
       if (!best || base999.priceDate > best.priceDate) {
-        return base999.pricePerGram * (Number(purity) / 999)
+        return deriveBullionFrom999(base999.pricePerGram, purity)
       }
     }
 
@@ -129,23 +149,18 @@ export type TimePoint = {
   bullion: number
   pnl: number
   cumulativeWeight: number
+  /** True when one or more purchases occurred on this date. */
+  isPurchase: boolean
 }
 
 /**
  * Portfolio value over time.
  *
  * Strategy:
- * - Build a timeline using EVERY date that has either a purchase or a bullion
- *   price entry (plus today). This ensures gold price appreciation between
- *   purchases is visible rather than only plotting purchase dates.
- * - `invested` accumulates the cost basis for all purchases made on or before
- *   each date point (never decreases).
- * - `bullion` values each holding using the latest known bullion price for its
- *   purity on or before that date.
- * - On a purchase's very first date, if no bullion entry exists for that day we
- *   use the bullion price derived from the 999 spot price (purity-adjusted) so
- *   we never accidentally inflate the bullion value using the retail
- *   pricePerGram (which includes making charges / GST).
+ * - Build a timeline from purchase dates plus today.
+ * - Every purchase date is always plotted (visible nodes on the chart).
+ * - Historical dates: carry-forward 999 spot, else purchase price/g (estimate).
+ * - Today: latest carry-forward spot only (real current bullion value).
  */
 export function portfolioOverTime(
   purchases: PurchaseDTO[],
@@ -156,8 +171,9 @@ export function portfolioOverTime(
 
   const sorted = [...purchases].sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate))
   const today = new Date().toISOString().slice(0, 10)
+  const purchaseDates = new Set(sorted.map((p) => p.purchaseDate))
 
-  // X-axis: unique purchase dates + today only (keep it simple).
+  // Timeline: purchase dates + today only.
   const dateSet = new Set<string>()
   for (const p of sorted) dateSet.add(p.purchaseDate)
   dateSet.add(today)
@@ -165,30 +181,34 @@ export function portfolioOverTime(
 
   let invested = 0
   let pi = 0
-  const holdings: { weight: number; purity: string }[] = []
+  const holdings: { weight: number; purity: string; fallbackPricePerGram: number }[] = []
   const points: TimePoint[] = []
 
   for (const date of allDates) {
-    // Accumulate all purchases on or before this date.
+    const isToday = date === today
     while (pi < sorted.length && sorted[pi].purchaseDate <= date) {
       const p = sorted[pi]
       invested += costBasis(p, mode)
-      holdings.push({ weight: totalWeight(p.weightGrams, p.quantity), purity: p.purity })
+      holdings.push({
+        weight: totalWeight(p.weightGrams, p.quantity),
+        purity: p.purity,
+        fallbackPricePerGram: p.pricePerGram || 0,
+      })
       pi++
     }
     if (holdings.length === 0) continue
 
-    // Value holdings using carry-forward bullion price (purity-ratio derived from 999).
     let bullion = 0
     let weight = 0
     for (const h of holdings) {
-      const price = priceCarryForward(prices, date, h.purity)
+      const price = bullionRateOnDate(prices, date, h.purity, h.fallbackPricePerGram, isToday)
       bullion += h.weight * price
       weight += h.weight
     }
 
-    // Skip if no bullion price available for this date yet.
-    if (bullion === 0) continue
+    const isPurchase = purchaseDates.has(date)
+    // Always plot purchase dates; skip today only when bullion cannot be valued.
+    if (bullion === 0 && !isPurchase) continue
 
     points.push({
       date,
@@ -196,6 +216,7 @@ export function portfolioOverTime(
       bullion: round(bullion),
       pnl: round(bullion - invested),
       cumulativeWeight: round(weight),
+      isPurchase,
     })
   }
 
@@ -347,10 +368,10 @@ export function groupBy(
     .sort((a, b) => b.spend - a.spend)
 }
 
-export type DailyPnl = { date: string; pnl: number }
+export type DailyPnl = { date: string; pnl: number; isPurchase: boolean }
 
 export function dailyPnl(points: TimePoint[]): DailyPnl[] {
-  return points.map((p) => ({ date: p.date, pnl: p.pnl }))
+  return points.map((p) => ({ date: p.date, pnl: p.pnl, isPurchase: p.isPurchase }))
 }
 
 function round(n: number) {

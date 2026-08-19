@@ -37,6 +37,7 @@ import {
 } from "@/lib/calculations"
 import {
   PURITIES,
+  PURITY_LABELS,
   CATEGORIES,
   PAYMENT_METHODS,
   CASHBACK_STATUSES,
@@ -472,6 +473,7 @@ export function PurchaseForm({
                   value={form.purity}
                   onChange={(v) => set("purity", v)}
                   options={PURITIES}
+                  optionLabels={PURITY_LABELS}
                 />
                 <NumberField
                   label="Weight (g) / unit"

@@ -14,6 +14,7 @@ import {
   YAxis,
 } from "recharts"
 import type { PurchaseDTO, GoldPriceDTO } from "@/lib/types"
+import type { TimePoint } from "@/lib/analytics"
 import { useGraphMode } from "@/components/graph-mode-provider"
 import { useCurrency } from "@/components/currency-provider"
 import { formatCurrency, formatDate } from "@/lib/format"
@@ -55,6 +56,22 @@ const axisProps = {
   fontSize: 11,
   tickLine: false,
   axisLine: false,
+}
+
+function purchaseDot(fill: string) {
+  return (props: { cx?: number; cy?: number; payload?: TimePoint }) => {
+    if (!props.payload?.isPurchase || props.cx == null || props.cy == null) return <g />
+    return (
+      <circle
+        cx={props.cx}
+        cy={props.cy}
+        r={4}
+        fill={fill}
+        stroke="var(--color-background)"
+        strokeWidth={2}
+      />
+    )
+  }
 }
 
 export function DashboardCharts({
@@ -134,6 +151,8 @@ export function DashboardCharts({
               stroke="var(--color-chart-5)"
               fill="url(#fillInvested)"
               strokeWidth={2}
+              dot={purchaseDot("var(--color-chart-5)")}
+              activeDot={{ r: 5 }}
             />
             <Area
               type="monotone"
@@ -142,6 +161,8 @@ export function DashboardCharts({
               stroke="var(--color-chart-1)"
               fill="url(#fillBullion)"
               strokeWidth={2}
+              dot={purchaseDot("var(--color-chart-1)")}
+              activeDot={{ r: 5 }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -233,6 +254,7 @@ export function DashboardCharts({
                   stroke="url(#strokePnl)"
                   fill="url(#fillPnl)"
                   strokeWidth={2}
+                  dot={purchaseDot("var(--color-chart-1)")}
                 />
               </AreaChart>
             </ResponsiveContainer>
