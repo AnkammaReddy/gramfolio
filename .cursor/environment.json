@@ -1,0 +1,12 @@
+{
+  "name": "GramFolio",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "corepack pnpm dev"
+    }
+  ],
+  "ports": [{ "name": "web", "port": 3000 }]
+}
