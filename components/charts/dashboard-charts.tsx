@@ -254,7 +254,7 @@ export function DashboardCharts({
                   stroke="url(#strokePnl)"
                   fill="url(#fillPnl)"
                   strokeWidth={2}
-                  dot={purchaseDot("var(--color-chart-2)")}
+                  dot={purchaseDot("var(--color-chart-1)")}
                 />
               </AreaChart>
             </ResponsiveContainer>
