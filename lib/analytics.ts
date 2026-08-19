@@ -82,22 +82,23 @@ function priceCarryForward(prices: GoldPriceDTO[], date: string, purity: string)
   return bestExact?.pricePerGram ?? 0
 }
 
-/** Earliest 999 spot on or after a date — chart-only when no prior spot exists yet. */
-function priceForwardFill999(prices: GoldPriceDTO[], date: string, purity: string): number {
-  let best999: GoldPriceDTO | null = null
-  for (const p of prices) {
-    if (p.purity !== "999") continue
-    if (p.priceDate >= date && (!best999 || p.priceDate < best999.priceDate)) best999 = p
-  }
-  if (!best999) return 0
-  return purity === "999" ? best999.pricePerGram : deriveBullionFrom999(best999.pricePerGram, purity)
-}
-
-/** Chart valuation: carry-forward spot, then forward-fill so early purchases still plot. */
-function priceForChartPlot(prices: GoldPriceDTO[], date: string, purity: string): number {
-  const back = priceCarryForward(prices, date, purity)
-  if (back > 0) return back
-  return priceForwardFill999(prices, date, purity)
+/**
+ * Bullion ₹/g for a chart/history date.
+ * - Prefer carry-forward 999 spot (purity-adjusted).
+ * - Historical dates only: fall back to purchase price/g when no spot exists yet.
+ * - Today: spot only — never purchase price/g (current portfolio value).
+ */
+function bullionRateOnDate(
+  prices: GoldPriceDTO[],
+  date: string,
+  purity: string,
+  purchasePricePerGram: number,
+  isToday: boolean,
+): number {
+  const spot = priceCarryForward(prices, date, purity)
+  if (spot > 0) return spot
+  if (isToday) return 0
+  return purchasePricePerGram
 }
 
 export function latestPrice(prices: GoldPriceDTO[], purity = "999"): number {
@@ -158,8 +159,8 @@ export type TimePoint = {
  * Strategy:
  * - Build a timeline from purchase dates plus today.
  * - Every purchase date is always plotted (visible nodes on the chart).
- * - Bullion uses carry-forward 999 spot; purchases before the first spot entry
- *   forward-fill from the earliest available 999 price (chart only).
+ * - Historical dates: carry-forward 999 spot, else purchase price/g (estimate).
+ * - Today: latest carry-forward spot only (real current bullion value).
  */
 export function portfolioOverTime(
   purchases: PurchaseDTO[],
@@ -180,14 +181,19 @@ export function portfolioOverTime(
 
   let invested = 0
   let pi = 0
-  const holdings: { weight: number; purity: string }[] = []
+  const holdings: { weight: number; purity: string; fallbackPricePerGram: number }[] = []
   const points: TimePoint[] = []
 
   for (const date of allDates) {
+    const isToday = date === today
     while (pi < sorted.length && sorted[pi].purchaseDate <= date) {
       const p = sorted[pi]
       invested += costBasis(p, mode)
-      holdings.push({ weight: totalWeight(p.weightGrams, p.quantity), purity: p.purity })
+      holdings.push({
+        weight: totalWeight(p.weightGrams, p.quantity),
+        purity: p.purity,
+        fallbackPricePerGram: p.pricePerGram || 0,
+      })
       pi++
     }
     if (holdings.length === 0) continue
@@ -195,7 +201,7 @@ export function portfolioOverTime(
     let bullion = 0
     let weight = 0
     for (const h of holdings) {
-      const price = priceForChartPlot(prices, date, h.purity)
+      const price = bullionRateOnDate(prices, date, h.purity, h.fallbackPricePerGram, isToday)
       bullion += h.weight * price
       weight += h.weight
     }

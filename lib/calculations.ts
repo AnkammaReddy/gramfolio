@@ -73,7 +73,7 @@ export type PortfolioTotals = {
 /**
  * Aggregate portfolio totals. Pass all gold prices so each purchase is valued
  * at the correct purity price (916, 995, 999, etc.) instead of always using 999.
- * `fallbackPrice` is used only when a purchase's purity has no matching price entry.
+ * `fallbackPrice` is used only when callers pass a single number instead of the prices array.
  * Note: weightGrams in DTO is per-unit; multiply by quantity for line totals.
  */
 export function computeTotals(
@@ -112,14 +112,11 @@ export function computeTotals(
     totalCashbackReceived += p.cashbackReceived || 0
     if (p.cashbackStatus === "Missing") missedCashback += p.cashbackExpected || 0
 
-    // Value each purchase at latestPrice for its purity (916/995 derived from 999 when needed).
+    // Value each purchase at latest 999-derived spot only (today's bullion — no retail fallback).
     const priceForPurity = pricesArray
-      ? (() => {
-          const rate = latestPrice(pricesArray, p.purity)
-          return rate > 0 ? rate : (p.pricePerGram ?? fallbackPrice ?? 0)
-        })()
-      : (fallbackPrice || p.pricePerGram || 0)
-    todayBullionValue += w * priceForPurity
+      ? latestPrice(pricesArray, p.purity)
+      : fallbackPrice
+    todayBullionValue += w * (priceForPurity > 0 ? priceForPurity : 0)
   }
   const hasPrices = todayBullionValue > 0
   const unrealizedPnL = hasPrices ? todayBullionValue - totalEffectiveInvestment : 0
