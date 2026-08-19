@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import Link from "next/link"
 import type { PurchaseDTO, GoldPriceDTO } from "@/lib/types"
-import { latestPrice, priceAsOf } from "@/lib/analytics"
+import { latestPrice, priceAsOfWithSource } from "@/lib/analytics"
 import { totalWeight, instantSavings } from "@/lib/calculations"
 import { useCurrency } from "@/components/currency-provider"
 import { formatCurrency, formatDate, formatWeight } from "@/lib/format"
@@ -39,13 +39,11 @@ export function InvestmentTimeline({
         const weight = totalWeight(p.weightGrams, p.quantity)
         const bullion = latestPriceForPurity(p.purity)
         const currentValue = bullion > 0 ? weight * bullion : 0
-        // Bullion rate on purchase date — uses purity-corrected price as of that date.
-        // priceAsOf derives from 999 if no exact entry exists (and prefers fresher 999 over stale exact).
-        // Falls back to purchase's own pricePerGram only when no bullion data exists at all.
-        const bullionOnDate = priceAsOf(prices, p.purchaseDate, p.purity, p.pricePerGram || 0)
-        // Show estimate indicator when no exact entry exists for this purity on this date
-        const exactEntry = prices.find(
-          (pr) => pr.priceDate === p.purchaseDate && pr.purity === p.purity,
+        const { pricePerGram: bullionOnDate, source: bullionOnDateSource } = priceAsOfWithSource(
+          prices,
+          p.purchaseDate,
+          p.purity,
+          p.pricePerGram || 0,
         )
 
         // Instant savings (vouchers, supercoins, reward points) — always realized
@@ -154,14 +152,23 @@ export function InvestmentTimeline({
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-1">
                         <p className="text-xs text-muted-foreground">On Purchase Date</p>
-                        {!exactEntry && (
+                        {bullionOnDateSource !== "exact" && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger>
-                                <Info className="h-3 w-3 text-amber-500 shrink-0 cursor-help" />
+                                <Info
+                                  className={cn(
+                                    "h-3 w-3 shrink-0 cursor-help",
+                                    bullionOnDateSource === "derived_999"
+                                      ? "text-muted-foreground"
+                                      : "text-amber-500",
+                                  )}
+                                />
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-[220px] text-xs">
-                                No bullion entry found for {p.purchaseDate}. Showing purchase price as estimate. Add a 999 price entry for this date for accurate valuation.
+                              <TooltipContent side="top" className="max-w-[240px] text-xs">
+                                {bullionOnDateSource === "derived_999"
+                                  ? `Derived from the 999 bullion price on ${formatDate(p.purchaseDate)} (× ${p.purity}/999). Only 999 prices are stored; ${p.purity} is computed from that rate.`
+                                  : `No bullion entry for ${formatDate(p.purchaseDate)}. Showing purchase price as estimate. Add a 999 price for this date for bullion valuation.`}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -172,7 +179,10 @@ export function InvestmentTimeline({
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {bullionOnDate > 0 ? `${fmt(bullionOnDate)} / g` : "No entry"}
-                        {!exactEntry && bullionOnDate > 0 && (
+                        {bullionOnDate > 0 && bullionOnDateSource === "derived_999" && (
+                          <span className="text-muted-foreground ml-1">(from 999)</span>
+                        )}
+                        {bullionOnDate > 0 && bullionOnDateSource === "fallback" && (
                           <span className="text-amber-500 ml-1">(est.)</span>
                         )}
                       </p>

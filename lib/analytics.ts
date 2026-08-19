@@ -9,30 +9,43 @@ export function monthLabel(key: string) {
   return date.toLocaleDateString("en-IN", { month: "short", year: "2-digit" })
 }
 
+export type BullionPriceSource = "exact" | "derived_999" | "fallback"
+
 /** Bullion price on an exact date (used for Timeline card "On Purchase Date").
  *  1. Looks for an exact purity entry on that date.
  *  2. If not found, looks for a 999 entry on that exact date and derives via purity ratio.
  *  3. If still nothing found, returns fallbackPricePerGram (the purchase's own pricePerGram).
  *  Does NOT carry forward prior-date prices — that would misrepresent purchase-date bullion value.
  */
+export function priceAsOfWithSource(
+  prices: GoldPriceDTO[],
+  date: string,
+  purity = "999",
+  fallbackPricePerGram = 0,
+): { pricePerGram: number; source: BullionPriceSource } {
+  const exact = prices.find((p) => p.purity === purity && p.priceDate === date)
+  if (exact) return { pricePerGram: exact.pricePerGram, source: "exact" }
+
+  if (purity !== "999") {
+    const base999 = prices.find((p) => p.purity === "999" && p.priceDate === date)
+    if (base999) {
+      return {
+        pricePerGram: base999.pricePerGram * (Number(purity) / 999),
+        source: "derived_999",
+      }
+    }
+  }
+
+  return { pricePerGram: fallbackPricePerGram, source: "fallback" }
+}
+
 export function priceAsOf(
   prices: GoldPriceDTO[],
   date: string,
   purity = "999",
   fallbackPricePerGram = 0,
 ): number {
-  // Step 1: exact date + exact purity
-  const exact = prices.find((p) => p.purity === purity && p.priceDate === date)
-  if (exact) return exact.pricePerGram
-
-  // Step 2: exact date + 999 base → derive via purity ratio
-  if (purity !== "999") {
-    const base999 = prices.find((p) => p.purity === "999" && p.priceDate === date)
-    if (base999) return base999.pricePerGram * (Number(purity) / 999)
-  }
-
-  // Step 3: no bullion entry for this date — use purchase price as fallback
-  return fallbackPricePerGram
+  return priceAsOfWithSource(prices, date, purity, fallbackPricePerGram).pricePerGram
 }
 
 /**
