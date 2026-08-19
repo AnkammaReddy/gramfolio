@@ -71,21 +71,6 @@ export type PortfolioTotals = {
 }
 
 /**
- * Build a lookup map of the correct latest price per purity from a prices array.
- * Uses latestPrice() so stale direct purity entries (e.g. an old 916 price from 2024)
- * are overridden by a fresher 999-derived value, consistent with the Timeline fix.
- */
-function buildPriceMap(prices: GoldPriceDTO[]): Map<string, number> {
-  const purities = Array.from(new Set(prices.map((p) => p.purity)))
-  const map = new Map<string, number>()
-  for (const purity of purities) {
-    const price = latestPrice(prices, purity)
-    if (price > 0) map.set(purity, price)
-  }
-  return map
-}
-
-/**
  * Aggregate portfolio totals. Pass all gold prices so each purchase is valued
  * at the correct purity price (916, 995, 999, etc.) instead of always using 999.
  * `fallbackPrice` is used only when a purchase's purity has no matching price entry.
@@ -97,8 +82,8 @@ export function computeTotals(
 ): PortfolioTotals {
   // Support both old callers that pass a single number (bullion 999 price)
   // and new callers that pass the full prices array for purity-aware valuation.
-  const priceMap: Map<string, number> | null =
-    Array.isArray(bullionPriceOrPrices) ? buildPriceMap(bullionPriceOrPrices) : null
+  const pricesArray: GoldPriceDTO[] | null =
+    Array.isArray(bullionPriceOrPrices) ? bullionPriceOrPrices : null
   const fallbackPrice: number =
     Array.isArray(bullionPriceOrPrices) ? (bullionPriceOrPrices[0]?.pricePerGram ?? 0) : bullionPriceOrPrices
 
@@ -127,12 +112,12 @@ export function computeTotals(
     totalCashbackReceived += p.cashbackReceived || 0
     if (p.cashbackStatus === "Missing") missedCashback += p.cashbackExpected || 0
 
-    // For bullion valuation: use purity-specific price from priceMap if available.
-    // priceMap contains latest prices (for KPI dashboard showing today's value).
-    // If no price exists for this purity, fall back to purchase's own pricePerGram
-    // (so purchases with missing bullion entries still show a meaningful value).
-    const priceForPurity = priceMap
-      ? (priceMap.get(p.purity) ?? p.pricePerGram ?? fallbackPrice ?? 0)
+    // Value each purchase at latestPrice for its purity (916/995 derived from 999 when needed).
+    const priceForPurity = pricesArray
+      ? (() => {
+          const rate = latestPrice(pricesArray, p.purity)
+          return rate > 0 ? rate : (p.pricePerGram ?? fallbackPrice ?? 0)
+        })()
       : (fallbackPrice || p.pricePerGram || 0)
     todayBullionValue += w * priceForPurity
   }
