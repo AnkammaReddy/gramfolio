@@ -138,17 +138,13 @@ export type TimePoint = {
  * Portfolio value over time.
  *
  * Strategy:
- * - Build a timeline using EVERY date that has either a purchase or a bullion
- *   price entry (plus today). This ensures gold price appreciation between
- *   purchases is visible rather than only plotting purchase dates.
+ * - Build a timeline from purchase dates plus today (one point per buy, plus current value).
  * - `invested` accumulates the cost basis for all purchases made on or before
  *   each date point (never decreases).
  * - `bullion` values each holding using the latest known bullion price for its
- *   purity on or before that date.
- * - On a purchase's very first date, if no bullion entry exists for that day we
- *   use the bullion price derived from the 999 spot price (purity-adjusted) so
- *   we never accidentally inflate the bullion value using the retail
- *   pricePerGram (which includes making charges / GST).
+ *   purity on or before that date (carry-forward from 999 spot).
+ * - Purchase dates are always plotted; if no spot exists yet, falls back to
+ *   purchase price/g for chart valuation only.
  */
 export function portfolioOverTime(
   purchases: PurchaseDTO[],
