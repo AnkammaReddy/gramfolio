@@ -151,52 +151,41 @@ export function portfolioOverTime(
   prices: GoldPriceDTO[],
   mode: GraphMode,
 ): TimePoint[] {
-  if (purchases.length === 0) return []
+  if (purchases.length === 0 || prices.length === 0) return []
 
   const sorted = [...purchases].sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate))
   const today = new Date().toISOString().slice(0, 10)
   const purchaseDates = new Set(sorted.map((p) => p.purchaseDate))
 
-  // Timeline: every purchase date, every 999 bullion price date, and today.
+  // Timeline: purchase dates + today only.
   const dateSet = new Set<string>()
   for (const p of sorted) dateSet.add(p.purchaseDate)
-  for (const pr of prices) {
-    if (pr.purity === "999") dateSet.add(pr.priceDate)
-  }
   dateSet.add(today)
   const allDates = [...dateSet].sort((a, b) => a.localeCompare(b))
 
   let invested = 0
   let pi = 0
-  const holdings: { weight: number; purity: string; fallbackPricePerGram: number }[] = []
+  const holdings: { weight: number; purity: string }[] = []
   const points: TimePoint[] = []
 
   for (const date of allDates) {
-    // Accumulate all purchases on or before this date.
     while (pi < sorted.length && sorted[pi].purchaseDate <= date) {
       const p = sorted[pi]
       invested += costBasis(p, mode)
-      holdings.push({
-        weight: totalWeight(p.weightGrams, p.quantity),
-        purity: p.purity,
-        fallbackPricePerGram: p.pricePerGram || 0,
-      })
+      holdings.push({ weight: totalWeight(p.weightGrams, p.quantity), purity: p.purity })
       pi++
     }
     if (holdings.length === 0) continue
 
-    // Value holdings using carry-forward bullion price (purity-ratio derived from 999).
     let bullion = 0
     let weight = 0
     for (const h of holdings) {
-      const spot = priceCarryForward(prices, date, h.purity)
-      const price = spot > 0 ? spot : h.fallbackPricePerGram
+      const price = priceCarryForward(prices, date, h.purity)
       bullion += h.weight * price
       weight += h.weight
     }
 
-    // Always plot purchase dates (markers + invested steps). Other dates need bullion data.
-    if (bullion === 0 && !purchaseDates.has(date)) continue
+    if (bullion === 0) continue
 
     points.push({
       date,
