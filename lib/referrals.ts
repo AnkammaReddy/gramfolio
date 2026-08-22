@@ -7,6 +7,8 @@ export type CardReferral = {
   name: string
   /** Short label shown next to the icon */
   shortName: string
+  /** Reward copy shown on the contribute banner */
+  rewardMessage: string
   /** Helps fund hosting for roughly this many months when the campaign succeeds */
   runwayHint: string
   /** Personal bank referral URL — set via NEXT_PUBLIC_SCAPIA_REFERRAL_URL for Scapia */
@@ -17,6 +19,7 @@ export const SCAPIA_REFERRAL: CardReferral = {
   id: "scapia",
   name: "Scapia Federal Bank Credit Card",
   shortName: "Scapia",
+  rewardMessage: "₹5,000 Amazon Pay voucher for 2 successful referrals",
   runwayHint: "3 to 4 months",
   url:
     process.env.NEXT_PUBLIC_SCAPIA_REFERRAL_URL?.trim() ||
