@@ -170,7 +170,12 @@ export function generateCardInsights(
   return insights.slice(0, 3)
 }
 
-export type Insight = { id: string; text: string; tone: "neutral" | "positive" | "warning" }
+export type Insight = {
+  id: string
+  text: string
+  tone: "neutral" | "positive" | "warning"
+  href?: string
+}
 
 export function generateInsights(
   purchases: PurchaseDTO[],
@@ -193,6 +198,7 @@ export function generateInsights(
       id: "top-card",
       tone: "positive",
       text: `${topCard.key} has generated ${fmt(topCard.rewardValue)} worth of rewards.`,
+      href: "/analytics/cards",
     })
   }
 
@@ -208,6 +214,7 @@ export function generateInsights(
       text: `${cheapestSite.key} purchases have the lowest average acquisition cost at ${fmt(
         cheapestSite.avgEffectivePrice,
       )}/g.`,
+      href: "/analytics/websites",
     })
   }
 
@@ -217,6 +224,7 @@ export function generateInsights(
       id: "pending-cb",
       tone: "warning",
       text: `You have ${fmt(totals.pendingCashback)} cashback pending.`,
+      href: "/cashback",
     })
   }
 
