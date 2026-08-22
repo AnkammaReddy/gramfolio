@@ -57,22 +57,21 @@ export function DashboardFeedbackBanner() {
         <div className="flex items-start gap-2.5">
           <ScapiaMark />
           <div className="min-w-0 space-y-1">
-            <p className="text-sm font-medium text-foreground leading-snug">
+            <p className="text-xs font-medium text-foreground leading-snug">
               Scapia card referral
             </p>
-            <p className="text-sm font-medium text-amber-600 dark:text-amber-400 leading-snug">
+            <p className="text-xs font-medium text-amber-600 dark:text-amber-400 leading-snug">
               {SCAPIA_REFERRAL.rewardMessage}
             </p>
-            <p className="text-sm text-muted-foreground leading-snug">
-              Helps keep GramFolio running for {SCAPIA_REFERRAL.runwayHint}. Only if you
-              already decided to apply for the card.
+            <p className="text-xs text-muted-foreground leading-snug">
+              Helps keep GramFolio running.
             </p>
           </div>
         </div>
         <Button
           type="button"
           size="sm"
-          className="h-7 gap-1.5 text-sm"
+          className="h-7 gap-1.5 text-xs"
           disabled={!SCAPIA_REFERRAL.url}
           title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
           onClick={openReferralLink}
