@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { ExternalLink, X } from "lucide-react"
+import { ExternalLink, Info, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { trackReferralClick } from "@/app/actions/feedback"
 import { useIsDemo } from "@/components/demo-mode-provider"
 import { SCAPIA_REFERRAL } from "@/lib/referrals"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 function ScapiaMark({ className }: { className?: string }) {
   return (
@@ -53,32 +54,45 @@ export function DashboardFeedbackBanner() {
         <X className="h-3.5 w-3.5" />
       </button>
 
-      <div className="space-y-2.5 pr-6">
-        <div className="flex items-start gap-2.5">
-          <ScapiaMark />
-          <div className="min-w-0 space-y-1">
-            <p className="text-xs font-medium text-foreground leading-snug">
-              Scapia card referral
-            </p>
-            <p className="text-xs font-medium text-amber-600 dark:text-amber-400 leading-snug">
-              {SCAPIA_REFERRAL.rewardMessage}
-            </p>
-            <p className="text-xs text-muted-foreground leading-snug">
-              Helps keep GramFolio running.
-            </p>
+      <div className="flex items-start gap-2.5 pr-6">
+        <ScapiaMark />
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-sm font-medium text-foreground">Scapia card referral</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="rounded-sm text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Why this referral is shown"
+                    >
+                      <Info className="h-3.5 w-3.5 shrink-0 cursor-help" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[240px] text-xs">
+                    Helps keep GramFolio running.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              className="h-7 gap-1.5 shrink-0 text-sm"
+              disabled={!SCAPIA_REFERRAL.url}
+              title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
+              onClick={openReferralLink}
+            >
+              <ExternalLink className="h-3 w-3" />
+              Apply
+            </Button>
           </div>
+          <p className="text-sm font-medium text-amber-600 dark:text-amber-400 leading-snug">
+            {SCAPIA_REFERRAL.rewardMessage}
+          </p>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
-          disabled={!SCAPIA_REFERRAL.url}
-          title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
-          onClick={openReferralLink}
-        >
-          <ExternalLink className="h-3 w-3" />
-          Open Scapia referral
-        </Button>
       </div>
     </div>
   )
