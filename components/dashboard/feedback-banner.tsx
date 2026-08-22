@@ -53,32 +53,33 @@ export function DashboardFeedbackBanner() {
         <X className="h-3.5 w-3.5" />
       </button>
 
-      <div className="space-y-2.5 pr-6">
-        <div className="flex items-start gap-2.5">
-          <ScapiaMark />
-          <div className="min-w-0 space-y-1">
-            <p className="text-xs font-medium text-foreground leading-snug">
-              Scapia card referral
-            </p>
-            <p className="text-xs font-medium text-amber-600 dark:text-amber-400 leading-snug">
+      <div className="flex items-start gap-2.5 pr-6">
+        <ScapiaMark />
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="text-sm leading-snug">
+            <span className="font-medium text-foreground">Scapia card referral</span>
+            <span className="mx-1.5 text-muted-foreground">·</span>
+            <span className="font-medium text-amber-600 dark:text-amber-400">
               {SCAPIA_REFERRAL.rewardMessage}
-            </p>
-            <p className="text-xs text-muted-foreground leading-snug">
+            </span>
+          </p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p className="text-sm text-muted-foreground leading-snug">
               Helps keep GramFolio running.
             </p>
+            <Button
+              type="button"
+              size="sm"
+              className="h-7 gap-1.5 text-sm"
+              disabled={!SCAPIA_REFERRAL.url}
+              title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
+              onClick={openReferralLink}
+            >
+              <ExternalLink className="h-3 w-3" />
+              Open Scapia referral
+            </Button>
           </div>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          className="h-7 gap-1.5 text-xs"
-          disabled={!SCAPIA_REFERRAL.url}
-          title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
-          onClick={openReferralLink}
-        >
-          <ExternalLink className="h-3 w-3" />
-          Open Scapia referral
-        </Button>
       </div>
     </div>
   )
