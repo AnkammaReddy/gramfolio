@@ -63,6 +63,9 @@ export function DashboardFeedbackBanner() {
             <p className="text-xs font-medium text-amber-600 dark:text-amber-400 leading-snug">
               {SCAPIA_REFERRAL.rewardMessage}
             </p>
+            <p className="text-xs text-muted-foreground leading-snug">
+              Helps keep GramFolio running.
+            </p>
           </div>
         </div>
         <Button
