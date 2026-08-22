@@ -103,6 +103,12 @@ export function InvestmentTimeline({
                       <span className="text-xs text-muted-foreground">{p.website}</span>
                     </>
                   )}
+                  {p.paymentMethod && (
+                    <>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-xs text-muted-foreground">{p.paymentMethod}</span>
+                    </>
+                  )}
                   {p.creditCard && (
                     <>
                       <span className="text-xs text-muted-foreground">•</span>
