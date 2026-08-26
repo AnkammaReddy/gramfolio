@@ -19,14 +19,31 @@ const SBI_REFERRAL_CODE = /sbicard\.com(?:\/#\/)?\/invite\/([A-Za-z0-9]+)/i
 const SBI_EAPPLY_CODE =
   /sbicard\.com\/eapply\/eapply-form\.page(?:\?|&)(?:[^#]*&)?referralcode=([A-Za-z0-9]+)/i
 
+/** Server redirect path — use in href so GramFolio sends a clean Location header to SBI. */
+export const SBI_CASHBACK_REDIRECT_PATH = "/r/sbi-cashback"
+
 /** Direct SBI e-apply URL — avoids /invite/ links that redirect into #/ hash routing. */
 export function sbiEapplyReferralUrl(code: string): string {
   return `https://www.sbicard.com/eapply/eapply-form.page?referralcode=${code}`
 }
 
+function stripSbiHash(url: string): string {
+  try {
+    url = decodeURIComponent(url)
+  } catch {
+    // keep url
+  }
+  return url.split("#")[0].replace(/%23\/?$/i, "").trim()
+}
+
 /** Strip stray SPA hash fragments and normalize SBI links to the e-apply form. */
 export function normalizeReferralUrl(raw: string): string {
-  let url = raw.trim().replace(/#\/?$/, "")
+  let url = raw.trim()
+  if (/sbicard\.com/i.test(url)) {
+    url = stripSbiHash(url)
+  } else {
+    url = url.replace(/#\/?$/, "")
+  }
 
   const inviteMatch = url.match(SBI_REFERRAL_CODE)
   if (inviteMatch) return sbiEapplyReferralUrl(inviteMatch[1])
