@@ -15,13 +15,25 @@ export type CardReferral = {
   url: string
 }
 
-/** Strip stray SPA hash fragments copied from bank share sheets (e.g. trailing #/). */
+const SBI_REFERRAL_CODE = /sbicard\.com(?:\/#\/)?\/invite\/([A-Za-z0-9]+)/i
+const SBI_EAPPLY_CODE =
+  /sbicard\.com\/eapply\/eapply-form\.page(?:\?|&)(?:[^#]*&)?referralcode=([A-Za-z0-9]+)/i
+
+/** Direct SBI e-apply URL — avoids /invite/ links that redirect into #/ hash routing. */
+export function sbiEapplyReferralUrl(code: string): string {
+  return `https://www.sbicard.com/eapply/eapply-form.page?referralcode=${code}`
+}
+
+/** Strip stray SPA hash fragments and normalize SBI links to the e-apply form. */
 export function normalizeReferralUrl(raw: string): string {
-  let url = raw.trim()
-  // SBI app sometimes shares hash-router invite links; path-based /invite/ works reliably.
-  url = url.replace(/(sbicard\.com)\/#\/invite\//i, "$1/invite/")
-  // Trailing hash fragments from copy/paste or env typos.
-  url = url.replace(/#\/?$/, "")
+  let url = raw.trim().replace(/#\/?$/, "")
+
+  const inviteMatch = url.match(SBI_REFERRAL_CODE)
+  if (inviteMatch) return sbiEapplyReferralUrl(inviteMatch[1])
+
+  const eapplyMatch = url.match(SBI_EAPPLY_CODE)
+  if (eapplyMatch) return sbiEapplyReferralUrl(eapplyMatch[1])
+
   return url
 }
 
@@ -51,6 +63,8 @@ export const CRED_APP_REFERRAL = {
   ),
 } as const
 
+const SBI_CASHBACK_REFERRAL_CODE = "jisAaPVRqfD"
+
 /** SBI Cashback Credit Card invite. */
 export const SBI_CASHBACK_REFERRAL: CardReferral = {
   id: "sbi-cashback",
@@ -60,7 +74,7 @@ export const SBI_CASHBACK_REFERRAL: CardReferral = {
   runwayHint: "hosting runway varies",
   url: referralUrl(
     process.env.NEXT_PUBLIC_SBI_CASHBACK_REFERRAL_URL,
-    "https://www.sbicard.com/invite/jisAaPVRqfD",
+    sbiEapplyReferralUrl(SBI_CASHBACK_REFERRAL_CODE),
   ),
 }
 
