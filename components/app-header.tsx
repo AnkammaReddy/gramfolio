@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Activity, Coins, Lightbulb, LineChart, Menu, LogOut, MessageSquare, Settings as SettingsIcon, ShieldCheck, ShieldAlert } from "lucide-react"
+import { Activity, Coins, Lightbulb, LineChart, Menu, LogOut, MessageSquare, Settings as SettingsIcon, ShieldCheck, ShieldAlert, TrendingUp } from "lucide-react"
 
 function titleFor(pathname: string) {
   const match = [...navItems]
@@ -107,6 +107,21 @@ export function AppHeader({
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
                     Admin
                   </span>
+                </li>
+                <li>
+                  <Link
+                    href="/admin/growth"
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      pathname === "/admin/growth"
+                        ? "bg-primary/15 text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    <TrendingUp className="h-[18px] w-[18px]" />
+                    Members & growth
+                  </Link>
                 </li>
                 <li>
                   <Link
