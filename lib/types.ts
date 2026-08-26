@@ -115,3 +115,24 @@ export type SettingsDTO = {
   theme: string
   displayName: string | null
 }
+
+export type MessageSenderRole = "member" | "admin"
+
+export type MessageDTO = {
+  id: number
+  conversationId: number
+  senderRole: MessageSenderRole
+  body: string
+  createdAt: string
+  readAt: string | null
+  isMine: boolean
+}
+
+export type ConversationDTO = {
+  id: number
+  userId: string
+  userName: string | null
+  userEmail: string | null
+  lastMessageAt: string
+  unreadCount: number
+}

@@ -126,3 +126,10 @@ export const settingsSchema = z.object({
 })
 
 export type SettingsInput = z.infer<typeof settingsSchema>
+
+export const messageBodySchema = z
+  .string()
+  .min(1, "Message cannot be empty")
+  .max(2000, "Message must be 2000 characters or fewer")
+  .transform(sanitizeText)
+  .refine((v) => v.length >= 1, "Message cannot be empty")

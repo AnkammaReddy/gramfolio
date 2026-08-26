@@ -83,10 +83,13 @@ corepack pnpm install --frozen-lockfile
 # Reuse an existing generated secret so sessions survive reruns; otherwise
 # prefer an externally supplied BETTER_AUTH_SECRET, else generate one.
 EXISTING_SECRET=""
+EXISTING_MSG_KEY=""
 if [ -f .env.local ]; then
   EXISTING_SECRET="$(grep -E '^BETTER_AUTH_SECRET=' .env.local | head -n1 | cut -d= -f2- || true)"
+  EXISTING_MSG_KEY="$(grep -E '^MESSAGE_ENCRYPTION_KEY=' .env.local | head -n1 | cut -d= -f2- || true)"
 fi
 SECRET="${EXISTING_SECRET:-${BETTER_AUTH_SECRET:-$(openssl rand -base64 32)}}"
+MSG_KEY="${EXISTING_MSG_KEY:-${MESSAGE_ENCRYPTION_KEY:-$(openssl rand -base64 32)}}"
 
 echo "[install] Writing .env.local (DATABASE_URL$([ -n "$EXTERNAL_DB_URL" ] && echo ' = external/Neon' || echo ' = local Postgres'))..."
 cat > .env.local <<EOF
@@ -96,6 +99,7 @@ cat > .env.local <<EOF
 # Cloud Agent Secrets panel and re-run install — it takes precedence over local.
 DATABASE_URL=$DB_URL
 BETTER_AUTH_SECRET=$SECRET
+MESSAGE_ENCRYPTION_KEY=$MSG_KEY
 BETTER_AUTH_URL=http://localhost:3000
 EOF
 

@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { navItems } from "@/lib/nav"
 import { cn } from "@/lib/utils"
-import { Coins, ShieldCheck, MessageSquare, LineChart, Activity, ShieldAlert, Lightbulb } from "lucide-react"
+import { Coins, ShieldCheck, MessageSquare, MessageCircle, LineChart, Activity, ShieldAlert, Lightbulb } from "lucide-react"
 
 export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname()
@@ -75,6 +75,20 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
                 >
                   <LineChart className="h-[18px] w-[18px]" />
                   Bullion Prices
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/messages"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    pathname === "/admin/messages"
+                      ? "bg-primary/15 text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  )}
+                >
+                  <MessageCircle className="h-[18px] w-[18px]" />
+                  Conversations
                 </Link>
               </li>
               <li>

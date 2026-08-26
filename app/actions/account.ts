@@ -2,8 +2,8 @@
 
 import { verifyPassword } from "better-auth/crypto"
 import { db } from "@/lib/db"
-import { account, session, user, userSettings, securityLogs } from "@/lib/db/schema"
-import { and, eq, isNotNull } from "drizzle-orm"
+import { account, session, user, userSettings, securityLogs, conversations, messages } from "@/lib/db/schema"
+import { and, eq, inArray, isNotNull } from "drizzle-orm"
 import { headers } from "next/headers"
 import { assertNotDemo } from "@/lib/auth-config"
 import { getSession } from "@/lib/session"
@@ -46,7 +46,7 @@ async function logSecurityEvent(
 /**
  * Permanently deletes the current user's login identity.
  *
- * Hard-deletes: session, account, user_settings (optional), user
+ * Hard-deletes: session, account, user_settings (optional), user, conversations, messages
  * Retains with orphan userId: purchases and related portfolio rows
  */
 export async function deleteAccount(password: string) {
@@ -96,6 +96,15 @@ export async function deleteAccount(password: string) {
   // Success log + hard-deletes in one transaction so the audit row cannot be lost.
   await db.transaction(async (tx) => {
     await logSecurityEvent("account_delete_success", email, ip, { userId }, tx)
+    const convRows = await tx
+      .select({ id: conversations.id })
+      .from(conversations)
+      .where(eq(conversations.userId, userId))
+    const convIds = convRows.map((c) => c.id)
+    if (convIds.length > 0) {
+      await tx.delete(messages).where(inArray(messages.conversationId, convIds))
+    }
+    await tx.delete(conversations).where(eq(conversations.userId, userId))
     await tx.delete(session).where(eq(session.userId, userId))
     await tx.delete(account).where(eq(account.userId, userId))
     await tx.delete(userSettings).where(eq(userSettings.userId, userId))

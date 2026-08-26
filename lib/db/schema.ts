@@ -214,6 +214,26 @@ export const feedback = pgTable("feedback", {
   readAt: timestamp("readAt"),
 })
 
+/** One admin conversation per member. */
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+  userId: text("userId").notNull().unique(),
+  lastMessageAt: timestamp("lastMessageAt").notNull().defaultNow(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+})
+
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversationId").notNull(),
+  senderId: text("senderId").notNull(),
+  senderRole: text("senderRole").notNull(), // member | admin
+  bodyCiphertext: text("bodyCiphertext").notNull(),
+  encryptionVersion: integer("encryptionVersion").notNull().default(1),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  readAt: timestamp("readAt"),
+})
+
 export const signupRateLimit = pgTable("signup_rate_limit", {
   id: serial("id").primaryKey(),
   ip: text("ip").notNull(),
@@ -262,5 +282,7 @@ export type GoldPrice = typeof goldPrices.$inferSelect
 export type UserSettings = typeof userSettings.$inferSelect
 export type Invite = typeof invites.$inferSelect
 export type Feedback = typeof feedback.$inferSelect
+export type Conversation = typeof conversations.$inferSelect
+export type Message = typeof messages.$inferSelect
 export type CreditCard = typeof creditCards.$inferSelect
 export type Brand = typeof brands.$inferSelect
