@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react"
 import { SiteHeader } from "@/components/marketing/site-header"
 import { SiteFooter } from "@/components/marketing/site-footer"
 import { ButtonLink } from "@/components/ui/button-link"
-import { CRED_APP_REFERRAL, SBI_CASHBACK_REFERRAL } from "@/lib/referrals"
+import { CRED_APP_REFERRAL, SBI_CASHBACK_REDIRECT_PATH } from "@/lib/referrals"
 
 export const metadata: Metadata = {
   title: "CRED Flipkart GV + card rewards stack for physical gold",
@@ -89,7 +89,7 @@ export default function FlipkartGvCredGoldStrategyPage() {
                 for this stack.
               </p>
               <a
-                href={SBI_CASHBACK_REFERRAL.url}
+                href={SBI_CASHBACK_REDIRECT_PATH}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 font-medium text-amber-700 underline underline-offset-4 hover:opacity-80 dark:text-amber-400"
