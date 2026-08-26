@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
   Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -127,7 +127,7 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Members & growth</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          New sign-ups and purchases over time, plus a full member list.
+          New sign-ups and purchases over time, with members who joined in the last week.
         </p>
       </div>
 
@@ -189,7 +189,7 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={filteredDaily} margin={{ left: 4, right: 8, top: 8 }}>
+              <LineChart data={filteredDaily} margin={{ left: 4, right: 8, top: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                 <XAxis
                   dataKey="date"
@@ -215,19 +215,25 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
                     value === "newMembers" ? "New members" : "New purchases"
                   }
                 />
-                <Bar
+                <Line
+                  type="monotone"
                   dataKey="newMembers"
                   name="newMembers"
-                  fill="var(--color-chart-1)"
-                  radius={[4, 4, 0, 0]}
+                  stroke="var(--color-chart-1)"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: "var(--color-chart-1)" }}
+                  activeDot={{ r: 5 }}
                 />
-                <Bar
+                <Line
+                  type="monotone"
                   dataKey="newPurchases"
                   name="newPurchases"
-                  fill="var(--color-chart-2)"
-                  radius={[4, 4, 0, 0]}
+                  stroke="var(--color-chart-2)"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: "var(--color-chart-2)" }}
+                  activeDot={{ r: 5 }}
                 />
-              </BarChart>
+              </LineChart>
             </ResponsiveContainer>
           )}
         </CardContent>
@@ -235,9 +241,10 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All members</CardTitle>
+          <CardTitle className="text-base">Joined in the last week</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {data.members.length} registered user{data.members.length === 1 ? "" : "s"}
+            {data.recentMembers.length} new member
+            {data.recentMembers.length === 1 ? "" : "s"} in the past 7 days
           </p>
         </CardHeader>
         <CardContent className="p-0">
@@ -253,14 +260,14 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.members.length === 0 ? (
+              {data.recentMembers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    No members yet.
+                    No new members in the last week.
                   </TableCell>
                 </TableRow>
               ) : (
-                data.members.map((member) => (
+                data.recentMembers.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell className="font-medium">{member.name}</TableCell>
                     <TableCell className="text-muted-foreground">{member.email}</TableCell>

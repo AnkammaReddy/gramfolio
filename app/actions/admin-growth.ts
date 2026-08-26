@@ -26,7 +26,7 @@ export type AdminGrowthData = {
   totalMembers: number;
   totalPurchases: number;
   daily: AdminGrowthDailyPoint[];
-  members: AdminGrowthMember[];
+  recentMembers: AdminGrowthMember[];
 };
 
 async function requireAdmin() {
@@ -110,6 +110,7 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
         MAX(p."createdAt") AS last_purchase_at
       FROM "user" u
       LEFT JOIN purchases p ON p."userId" = u.id
+      WHERE u."createdAt" > now() - interval '7 days'
       GROUP BY u.id, u.name, u.email, u.role, u."createdAt"
       ORDER BY u."createdAt" DESC
     `),
@@ -123,7 +124,7 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
       newMembers: Number(row.new_members),
       newPurchases: Number(row.new_purchases),
     })),
-    members: memberRows.map((row) => ({
+    recentMembers: memberRows.map((row) => ({
       id: row.id,
       name: row.name,
       email: row.email,
