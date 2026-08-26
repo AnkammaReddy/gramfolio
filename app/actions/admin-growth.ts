@@ -16,6 +16,26 @@ export type AdminGrowthMember = {
   lastPurchaseAt: string | null;
 };
 
+export type AdminGrowthActiveSession = {
+  id: string;
+  name: string;
+  email: string;
+  banned: boolean;
+  sessionCount: number;
+  firstSession: string;
+  lastActive: string;
+  lastIp: string | null;
+  isActiveNow: boolean;
+  newToday: boolean;
+};
+
+export type AdminGrowthSessionKpi = {
+  activeNow: number;
+  loggedInToday: number;
+  activeThisWeek: number;
+  totalActiveSessions: number;
+};
+
 export type AdminGrowthDailyPoint = {
   date: string;
   newMembers: number;
@@ -27,6 +47,8 @@ export type AdminGrowthData = {
   totalPurchases: number;
   daily: AdminGrowthDailyPoint[];
   recentMembers: AdminGrowthMember[];
+  sessionKpi: AdminGrowthSessionKpi;
+  activeSessions: AdminGrowthActiveSession[];
 };
 
 async function requireAdmin() {
@@ -116,6 +138,59 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
     `),
   );
 
+  const [sessionKpiRow] = asRows<{
+    active_now: string;
+    logged_in_today: string;
+    active_this_week: string;
+    total_active_sessions: string;
+  }>(
+    await db.execute(sql`
+      SELECT
+        COUNT(DISTINCT s."userId")
+          FILTER (WHERE GREATEST(s."updatedAt", s."createdAt") > now() - interval '2 hours'
+                AND s."expiresAt" > now())                                            AS active_now,
+        COUNT(DISTINCT s."userId")
+          FILTER (WHERE DATE(s."createdAt" AT TIME ZONE 'UTC') = CURRENT_DATE)        AS logged_in_today,
+        COUNT(DISTINCT s."userId")
+          FILTER (WHERE s."updatedAt" > now() - interval '7 days'
+                AND s."expiresAt" > now())                                            AS active_this_week,
+        COUNT(*)
+          FILTER (WHERE s."expiresAt" > now())                                        AS total_active_sessions
+      FROM session s
+    `),
+  );
+
+  const activeSessionRows = asRows<{
+    id: string;
+    name: string;
+    email: string;
+    banned: boolean;
+    session_count: string;
+    first_session: string;
+    last_active: string;
+    last_ip: string | null;
+    is_active_now: boolean;
+    new_today: boolean;
+  }>(
+    await db.execute(sql`
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.banned,
+        COUNT(s.id)::int                                                        AS session_count,
+        MIN(s."createdAt")                                                      AS first_session,
+        MAX(s."updatedAt")                                                      AS last_active,
+        MAX(s."ipAddress")                                                      AS last_ip,
+        BOOL_OR(GREATEST(s."updatedAt", s."createdAt") > now() - interval '2 hours') AS is_active_now,
+        BOOL_OR(DATE(s."createdAt" AT TIME ZONE 'UTC') = CURRENT_DATE)         AS new_today
+      FROM "user" u
+      INNER JOIN session s ON s."userId" = u.id AND s."expiresAt" > now()
+      GROUP BY u.id, u.name, u.email, u.banned
+      ORDER BY last_active DESC
+    `),
+  );
+
   return {
     totalMembers: Number(totals?.total_members ?? 0),
     totalPurchases: Number(totals?.total_purchases ?? 0),
@@ -132,6 +207,24 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
       createdAt: row.created_at,
       purchaseCount: Number(row.purchase_count),
       lastPurchaseAt: row.last_purchase_at,
+    })),
+    sessionKpi: {
+      activeNow: Number(sessionKpiRow?.active_now ?? 0),
+      loggedInToday: Number(sessionKpiRow?.logged_in_today ?? 0),
+      activeThisWeek: Number(sessionKpiRow?.active_this_week ?? 0),
+      totalActiveSessions: Number(sessionKpiRow?.total_active_sessions ?? 0),
+    },
+    activeSessions: activeSessionRows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      banned: row.banned,
+      sessionCount: Number(row.session_count),
+      firstSession: row.first_session,
+      lastActive: row.last_active,
+      lastIp: row.last_ip,
+      isActiveNow: row.is_active_now,
+      newToday: row.new_today,
     })),
   };
 }

@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ShoppingBag, UserPlus, Users } from "lucide-react";
+import { Activity, Clock, LogIn, ShoppingBag, UserPlus, Users, Wifi } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -83,6 +83,16 @@ function formatDateTime(d: string | null) {
   }).format(new Date(d));
 }
 
+function timeAgo(d: string) {
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
 function RangeFilter({
   value,
   onChange,
@@ -127,11 +137,15 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Members & growth</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          New sign-ups and purchases over time, with members who joined in the last week.
+          Growth, sign-ups, purchases, and live session activity in one place.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Growth
+        </p>
+        <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total members</CardTitle>
@@ -170,6 +184,51 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
             <p className="text-xs text-muted-foreground">All-time average</p>
           </CardContent>
         </Card>
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Sessions
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            {
+              label: "Active (last 2h)",
+              value: data.sessionKpi.activeNow,
+              icon: Wifi,
+              color: "text-green-500",
+            },
+            {
+              label: "Logged in today",
+              value: data.sessionKpi.loggedInToday,
+              icon: Activity,
+              color: "text-blue-500",
+            },
+            {
+              label: "Active this week",
+              value: data.sessionKpi.activeThisWeek,
+              icon: LogIn,
+              color: "text-amber-500",
+            },
+            {
+              label: "Live sessions",
+              value: data.sessionKpi.totalActiveSessions,
+              icon: Users,
+              color: "text-primary",
+            },
+          ].map((stat) => (
+            <Card key={stat.label}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <stat.icon className={cn("h-4 w-4", stat.color)} />
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+                <p className="mt-2 text-2xl font-semibold tabular-nums">{stat.value}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       <Card>
@@ -235,6 +294,70 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
                 />
               </LineChart>
             </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Clock className="h-4 w-4" />
+            Active sessions
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Members with a non-expired session. Live = activity in the last 2 hours.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {data.activeSessions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active sessions.</p>
+          ) : (
+            data.activeSessions.map((session) => (
+              <div
+                key={session.id}
+                className="flex flex-col gap-1 rounded-lg border border-border px-3 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-medium">{session.name}</span>
+                    {session.isActiveNow && (
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-green-500">
+                        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                        Live
+                      </span>
+                    )}
+                    {session.newToday && !session.isActiveNow && (
+                      <Badge variant="outline" className="h-4 px-1.5 text-[10px]">
+                        New today
+                      </Badge>
+                    )}
+                    {session.banned && (
+                      <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
+                        Banned
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="truncate text-xs text-muted-foreground">{session.email}</span>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
+                  <span>
+                    <span className="font-medium text-foreground">{session.sessionCount}</span>{" "}
+                    {session.sessionCount === 1 ? "session" : "sessions"}
+                  </span>
+                  <span>
+                    Last active:{" "}
+                    <span className="text-foreground">{timeAgo(session.lastActive)}</span>
+                  </span>
+                  <span>
+                    First login:{" "}
+                    <span className="text-foreground">{formatDateTime(session.firstSession)}</span>
+                  </span>
+                  {session.lastIp && (
+                    <span className="font-mono text-[11px]">{session.lastIp}</span>
+                  )}
+                </div>
+              </div>
+            ))
           )}
         </CardContent>
       </Card>
