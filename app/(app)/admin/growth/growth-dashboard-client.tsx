@@ -288,17 +288,6 @@ function DailyActivityChart({
   );
 }
 
-function RoleBadge({ role }: { role: string }) {
-  return (
-    <Badge
-      variant={role === "admin" ? "default" : "secondary"}
-      className={cn(role === "admin" && "bg-primary")}
-    >
-      {role}
-    </Badge>
-  );
-}
-
 function MemberTableCell({
   name,
   email,
