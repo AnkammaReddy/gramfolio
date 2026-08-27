@@ -46,6 +46,9 @@ if [ -n "$EXTERNAL_DB_URL" ]; then
     echo "[install]   Checklist: URL user/password/host/db correct; include sslmode=require (Neon);"
     echo "[install]   egress to the DB host allowed (allowlist *.neon.tech if egress is restricted)."
   fi
+
+  echo "[install] Applying dev schema to external database..."
+  DATABASE_URL="$EXTERNAL_DB_URL" node scripts/apply-dev-schema.mjs
 else
   echo "[install] No external DATABASE_URL — provisioning local PostgreSQL."
   DB_URL="$LOCAL_DB_URL"
