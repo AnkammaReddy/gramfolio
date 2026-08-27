@@ -9,6 +9,9 @@ import { useIsDemo } from "@/components/demo-mode-provider"
 import { SCAPIA_REFERRAL } from "@/lib/referrals"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
+/** Temporary — set true to show the Scapia referral banner on the dashboard again. */
+const SCAPIA_REFERRAL_BANNER_ENABLED = false
+
 function ScapiaMark({ className }: { className?: string }) {
   return (
     <span
@@ -28,7 +31,7 @@ export function DashboardFeedbackBanner() {
   const [, startTransition] = useTransition()
   const [dismissed, setDismissed] = useState(false)
 
-  if (isDemo || dismissed) return null
+  if (!SCAPIA_REFERRAL_BANNER_ENABLED || isDemo || dismissed) return null
 
   function openReferralLink() {
     const url = SCAPIA_REFERRAL.url
