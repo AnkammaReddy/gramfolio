@@ -11,7 +11,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Activity, Clock, LogIn, ShoppingBag, UserPlus, Users, Wifi } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -93,6 +92,24 @@ function timeAgo(d: string) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function CompactStat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  hint?: string;
+}) {
+  return (
+    <div className="rounded-md border border-border bg-muted/30 px-2.5 py-2">
+      <p className="text-[11px] leading-tight text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold tabular-nums leading-tight">{value}</p>
+      {hint ? <p className="text-[10px] leading-tight text-muted-foreground">{hint}</p> : null}
+    </div>
+  );
+}
+
 function RangeFilter({
   value,
   onChange,
@@ -131,6 +148,8 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
 
   const rangeNewMembers = sumField(filteredDaily, "newMembers");
   const rangeNewPurchases = sumField(filteredDaily, "newPurchases");
+  const avgPurchases =
+    data.totalMembers > 0 ? (data.totalPurchases / data.totalMembers).toFixed(1) : "0";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
@@ -141,95 +160,39 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
         </p>
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Growth
-        </p>
-        <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tabular-nums">{data.totalMembers}</div>
-            <p className="text-xs text-muted-foreground">
-              +{rangeNewMembers} in selected range
+      <Card>
+        <CardContent className="space-y-3 p-4">
+          <div>
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Growth
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total purchases</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tabular-nums">{data.totalPurchases}</div>
-            <p className="text-xs text-muted-foreground">
-              +{rangeNewPurchases} in selected range
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg purchases / member</CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tabular-nums">
-              {data.totalMembers > 0
-                ? (data.totalPurchases / data.totalMembers).toFixed(1)
-                : "0"}
+            <div className="grid grid-cols-3 gap-2">
+              <CompactStat
+                label="Total members"
+                value={data.totalMembers}
+                hint={`+${rangeNewMembers} in range`}
+              />
+              <CompactStat
+                label="Total purchases"
+                value={data.totalPurchases}
+                hint={`+${rangeNewPurchases} in range`}
+              />
+              <CompactStat label="Avg / member" value={avgPurchases} hint="All-time" />
             </div>
-            <p className="text-xs text-muted-foreground">All-time average</p>
-          </CardContent>
-        </Card>
-        </div>
-      </div>
-
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Sessions
-        </p>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            {
-              label: "Active (last 2h)",
-              value: data.sessionKpi.activeNow,
-              icon: Wifi,
-              color: "text-green-500",
-            },
-            {
-              label: "Logged in today",
-              value: data.sessionKpi.loggedInToday,
-              icon: Activity,
-              color: "text-blue-500",
-            },
-            {
-              label: "Active this week",
-              value: data.sessionKpi.activeThisWeek,
-              icon: LogIn,
-              color: "text-amber-500",
-            },
-            {
-              label: "Live sessions",
-              value: data.sessionKpi.totalActiveSessions,
-              icon: Users,
-              color: "text-primary",
-            },
-          ].map((stat) => (
-            <Card key={stat.label}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <stat.icon className={cn("h-4 w-4", stat.color)} />
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
-                <p className="mt-2 text-2xl font-semibold tabular-nums">{stat.value}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+          </div>
+          <div>
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Sessions
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <CompactStat label="Active (2h)" value={data.sessionKpi.activeNow} />
+              <CompactStat label="Logged in today" value={data.sessionKpi.loggedInToday} />
+              <CompactStat label="Active this week" value={data.sessionKpi.activeThisWeek} />
+              <CompactStat label="Live sessions" value={data.sessionKpi.totalActiveSessions} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -300,65 +263,67 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Clock className="h-4 w-4" />
-            Active sessions
-          </CardTitle>
+          <CardTitle className="text-base">Active now (last 2 hours)</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Members with a non-expired session. Live = activity in the last 2 hours.
+            {data.activeSessions.length} user{data.activeSessions.length === 1 ? "" : "s"} with
+            recent session activity
           </p>
         </CardHeader>
-        <CardContent className="space-y-2">
-          {data.activeSessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active sessions.</p>
-          ) : (
-            data.activeSessions.map((session) => (
-              <div
-                key={session.id}
-                className="flex flex-col gap-1 rounded-lg border border-border px-3 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex min-w-0 flex-col">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate font-medium">{session.name}</span>
-                    {session.isActiveNow && (
-                      <span className="flex items-center gap-1 text-[10px] font-medium text-green-500">
-                        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
-                        Live
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="text-right">Sessions</TableHead>
+                <TableHead>Last active</TableHead>
+                <TableHead>First login</TableHead>
+                <TableHead>IP</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.activeSessions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    No active users in the last 2 hours.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.activeSessions.map((session) => (
+                  <TableRow key={session.id}>
+                    <TableCell className="font-medium">
+                      <span className="inline-flex items-center gap-2">
+                        {session.name}
+                        {session.newToday && (
+                          <Badge variant="outline" className="h-4 px-1.5 text-[10px]">
+                            New today
+                          </Badge>
+                        )}
+                        {session.banned && (
+                          <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
+                            Banned
+                          </Badge>
+                        )}
                       </span>
-                    )}
-                    {session.newToday && !session.isActiveNow && (
-                      <Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-                        New today
-                      </Badge>
-                    )}
-                    {session.banned && (
-                      <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
-                        Banned
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="truncate text-xs text-muted-foreground">{session.email}</span>
-                </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
-                  <span>
-                    <span className="font-medium text-foreground">{session.sessionCount}</span>{" "}
-                    {session.sessionCount === 1 ? "session" : "sessions"}
-                  </span>
-                  <span>
-                    Last active:{" "}
-                    <span className="text-foreground">{timeAgo(session.lastActive)}</span>
-                  </span>
-                  <span>
-                    First login:{" "}
-                    <span className="text-foreground">{formatDateTime(session.firstSession)}</span>
-                  </span>
-                  {session.lastIp && (
-                    <span className="font-mono text-[11px]">{session.lastIp}</span>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{session.email}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {session.sessionCount}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {timeAgo(session.lastActive)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDateTime(session.firstSession)}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {session.lastIp ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 

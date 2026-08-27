@@ -25,7 +25,6 @@ export type AdminGrowthActiveSession = {
   firstSession: string;
   lastActive: string;
   lastIp: string | null;
-  isActiveNow: boolean;
   newToday: boolean;
 };
 
@@ -185,7 +184,9 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
         BOOL_OR(GREATEST(s."updatedAt", s."createdAt") > now() - interval '2 hours') AS is_active_now,
         BOOL_OR(DATE(s."createdAt" AT TIME ZONE 'UTC') = CURRENT_DATE)         AS new_today
       FROM "user" u
-      INNER JOIN session s ON s."userId" = u.id AND s."expiresAt" > now()
+      INNER JOIN session s ON s."userId" = u.id
+        AND s."expiresAt" > now()
+        AND GREATEST(s."updatedAt", s."createdAt") > now() - interval '2 hours'
       GROUP BY u.id, u.name, u.email, u.banned
       ORDER BY last_active DESC
     `),
