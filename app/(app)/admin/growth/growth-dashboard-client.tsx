@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -117,7 +117,7 @@ function KpiGroup({
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-1 rounded-md border border-border/60 bg-muted/10 p-1.5">
@@ -200,10 +200,10 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
               <CompactStat label="Today" value={data.sessionKpi.loggedInToday} />
             </KpiGroup>
             <KpiGroup title="Demo">
-              <CompactStat label="Total" value={data.demoStats.totalLogins} />
-              <CompactStat label="24h" value={data.demoStats.last24h} />
-              <CompactStat label="7d" value={data.demoStats.last7d} />
-              <CompactStat label="IPs" value={data.demoStats.uniqueIps} />
+              <CompactStat label="Total" value={data.demoStats?.totalLogins ?? 0} />
+              <CompactStat label="24h" value={data.demoStats?.last24h ?? 0} />
+              <CompactStat label="7d" value={data.demoStats?.last7d ?? 0} />
+              <CompactStat label="IPs" value={data.demoStats?.uniqueIps ?? 0} />
             </KpiGroup>
           </div>
         </CardContent>

@@ -70,6 +70,19 @@ function asRows<T>(result: unknown): T[] {
   return (Array.isArray(result) ? result : (result as { rows: T[] }).rows) ?? [];
 }
 
+function toNum(value: unknown): number {
+  if (value == null) return 0;
+  if (typeof value === "bigint") return Number(value);
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function toIso(value: unknown): string | null {
+  if (value == null) return null;
+  if (value instanceof Date) return value.toISOString();
+  return String(value);
+}
+
 export async function getAdminGrowthData(): Promise<AdminGrowthData> {
   await requireAdmin();
 
@@ -182,10 +195,10 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
     );
     if (demoRow) {
       demoStats = {
-        totalLogins: Number(demoRow.total_logins),
-        uniqueIps: Number(demoRow.unique_ips),
-        last24h: Number(demoRow.last_24h),
-        last7d: Number(demoRow.last_7d),
+        totalLogins: toNum(demoRow.total_logins),
+        uniqueIps: toNum(demoRow.unique_ips),
+        last24h: toNum(demoRow.last_24h),
+        last7d: toNum(demoRow.last_7d),
       };
     }
   } catch {
@@ -224,37 +237,37 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
   );
 
   return {
-    totalMembers: Number(totals?.total_members ?? 0),
-    totalPurchases: Number(totals?.total_purchases ?? 0),
+    totalMembers: toNum(totals?.total_members),
+    totalPurchases: toNum(totals?.total_purchases),
     daily: dailyRows.map((row) => ({
-      date: row.date,
-      newMembers: Number(row.new_members),
-      newPurchases: Number(row.new_purchases),
+      date: String(row.date),
+      newMembers: toNum(row.new_members),
+      newPurchases: toNum(row.new_purchases),
     })),
     recentMembers: memberRows.map((row) => ({
       id: row.id,
       name: row.name,
       email: row.email,
       role: row.role,
-      createdAt: row.created_at,
-      purchaseCount: Number(row.purchase_count),
-      lastPurchaseAt: row.last_purchase_at,
+      createdAt: toIso(row.created_at) ?? "",
+      purchaseCount: toNum(row.purchase_count),
+      lastPurchaseAt: toIso(row.last_purchase_at),
     })),
     sessionKpi: {
-      activeNow: Number(sessionKpiRow?.active_now ?? 0),
-      loggedInToday: Number(sessionKpiRow?.logged_in_today ?? 0),
+      activeNow: toNum(sessionKpiRow?.active_now),
+      loggedInToday: toNum(sessionKpiRow?.logged_in_today),
     },
     demoStats,
     activeSessions: activeSessionRows.map((row) => ({
       id: row.id,
       name: row.name,
       email: row.email,
-      banned: row.banned,
-      sessionCount: Number(row.session_count),
-      firstSession: row.first_session,
-      lastActive: row.last_active,
+      banned: Boolean(row.banned),
+      sessionCount: toNum(row.session_count),
+      firstSession: toIso(row.first_session) ?? "",
+      lastActive: toIso(row.last_active) ?? "",
       lastIp: row.last_ip,
-      newToday: row.new_today,
+      newToday: Boolean(row.new_today),
     })),
   };
 }
