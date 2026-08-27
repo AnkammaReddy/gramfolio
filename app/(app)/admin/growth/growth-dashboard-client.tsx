@@ -26,6 +26,7 @@ import type {
   AdminGrowthData,
   AdminGrowthDailyPoint,
   AdminGrowthMember,
+  AdminGrowthRecentPurchaser,
 } from "@/app/actions/admin-growth";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -321,6 +322,32 @@ function ActiveSessionMobileRow({ session }: { session: AdminGrowthActiveSession
   );
 }
 
+function RecentPurchaserMobileRow({ user }: { user: AdminGrowthRecentPurchaser }) {
+  return (
+    <div className="space-y-1 rounded-lg border border-border px-3 py-2.5 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-medium">{user.name}</span>
+        <Badge
+          variant={user.role === "admin" ? "default" : "secondary"}
+          className={cn("h-4 px-1.5 text-[10px]", user.role === "admin" && "bg-primary")}
+        >
+          {user.role}
+        </Badge>
+      </div>
+      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+        <span>
+          <span className="text-foreground">{user.recentPurchaseCount}</span> added this week
+        </span>
+        <span>
+          <span className="text-foreground">{user.totalPurchaseCount}</span> total
+        </span>
+        <span>Last {timeAgo(user.lastPurchaseAt)}</span>
+      </div>
+    </div>
+  );
+}
+
 function RecentMemberMobileRow({ member }: { member: AdminGrowthMember }) {
   return (
     <div className="space-y-1 rounded-lg border border-border px-3 py-2.5 text-sm">
@@ -497,6 +524,72 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {session.lastIp ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-base">Recent purchases (last 7 days)</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {data.recentPurchasers.length} member
+            {data.recentPurchasers.length === 1 ? "" : "s"} who added purchases this week
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-2 p-4 pt-0 sm:hidden">
+          {data.recentPurchasers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No purchases added in the last week.</p>
+          ) : (
+            data.recentPurchasers.map((user) => (
+              <RecentPurchaserMobileRow key={user.id} user={user} />
+            ))
+          )}
+        </CardContent>
+        <CardContent className="hidden p-0 sm:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="text-right">This week</TableHead>
+                <TableHead className="text-right">All-time</TableHead>
+                <TableHead>Last added</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.recentPurchasers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    No purchases added in the last week.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.recentPurchasers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={user.role === "admin" ? "default" : "secondary"}
+                        className={cn(user.role === "admin" && "bg-primary")}
+                      >
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">
+                      {user.recentPurchaseCount}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                      {user.totalPurchaseCount}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDateTime(user.lastPurchaseAt)}
                     </TableCell>
                   </TableRow>
                 ))
