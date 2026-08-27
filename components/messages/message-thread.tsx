@@ -17,15 +17,19 @@ export function MessageThread({
   disabled,
   emptyHint,
   pollMs,
+  initialBody = "",
+  compact = false,
 }: {
   messages: MessageDTO[]
   onSend: (body: string) => Promise<void>
   disabled?: boolean
   emptyHint?: string
   pollMs?: number
+  initialBody?: string
+  compact?: boolean
 }) {
   const router = useRouter()
-  const [body, setBody] = useState("")
+  const [body, setBody] = useState(initialBody)
   const [pending, startTransition] = useTransition()
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -57,9 +61,21 @@ export function MessageThread({
     })
   }
 
+  useEffect(() => {
+    setBody(initialBody)
+  }, [initialBody])
+
   return (
-    <div className="flex min-h-[420px] flex-col rounded-xl border border-border bg-card">
-      <ScrollArea className="flex-1 px-4 py-4" style={{ maxHeight: "min(52vh, 520px)" }}>
+    <div
+      className={cn(
+        "flex flex-col rounded-xl border border-border bg-card",
+        compact ? "min-h-[320px]" : "min-h-[420px]",
+      )}
+    >
+      <ScrollArea
+        className="flex-1 px-4 py-4"
+        style={{ maxHeight: compact ? "min(40vh, 360px)" : "min(52vh, 520px)" }}
+      >
         {messages.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
             {emptyHint ?? "No messages yet."}

@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { PageHeader } from "@/components/page-header"
 import { getMyConversationMessages } from "@/app/actions/messages"
 import { MessagesClient } from "@/components/messages/messages-client"
@@ -11,7 +12,9 @@ export default async function MessagesPage() {
         title="Talk to admin"
         description="A private conversation with the GramFolio admin. Messages are encrypted in the database."
       />
-      <MessagesClient messages={messages} />
+      <Suspense fallback={null}>
+        <MessagesClient messages={messages} />
+      </Suspense>
     </div>
   )
 }
