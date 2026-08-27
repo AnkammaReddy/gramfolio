@@ -497,7 +497,6 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
           <TableHeader>
             <TableRow>
               <TableHead>Member</TableHead>
-              <TableHead className="hidden sm:table-cell">Role</TableHead>
               <TableHead className="text-right">This week</TableHead>
               <TableHead className="text-right">All-time</TableHead>
               <TableHead>Last added</TableHead>
@@ -506,18 +505,7 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
           <TableBody>
             {data.recentPurchasers.map((user) => (
               <TableRow key={user.id}>
-                <MemberTableCell
-                  name={user.name}
-                  email={user.email}
-                  trailing={
-                    <span className="sm:hidden">
-                      <RoleBadge role={user.role} />
-                    </span>
-                  }
-                />
-                <TableCell className="hidden sm:table-cell">
-                  <RoleBadge role={user.role} />
-                </TableCell>
+                <MemberTableCell name={user.name} email={user.email} />
                 <TableCell className="text-right tabular-nums font-medium">
                   {user.recentPurchaseCount}
                 </TableCell>
@@ -550,7 +538,6 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
           <TableHeader>
             <TableRow>
               <TableHead>Member</TableHead>
-              <TableHead className="hidden sm:table-cell">Role</TableHead>
               <TableHead className="text-right">Purchases</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="hidden md:table-cell">Last purchase</TableHead>
@@ -559,18 +546,7 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
           <TableBody>
             {data.recentMembers.map((member) => (
               <TableRow key={member.id}>
-                <MemberTableCell
-                  name={member.name}
-                  email={member.email}
-                  trailing={
-                    <span className="sm:hidden">
-                      <RoleBadge role={member.role} />
-                    </span>
-                  }
-                />
-                <TableCell className="hidden sm:table-cell">
-                  <RoleBadge role={member.role} />
-                </TableCell>
+                <MemberTableCell name={member.name} email={member.email} />
                 <TableCell className="text-right tabular-nums">{member.purchaseCount}</TableCell>
                 <TableCell className="whitespace-nowrap text-muted-foreground">
                   {formatDate(member.createdAt)}
