@@ -217,7 +217,4 @@ async function markConversationReadInternal(conversationId: number, userId: stri
         isNull(messages.readAt),
       ),
     )
-
-  revalidatePath("/messages")
-  revalidatePath("/admin/messages")
 }
