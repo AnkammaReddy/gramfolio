@@ -8,6 +8,7 @@ import {
   Tag,
   Clock,
   MessageSquare,
+  MessageCircle,
   Settings,
   type LucideIcon,
 } from "lucide-react"
@@ -27,6 +28,7 @@ export const navItems: NavItem[] = [
   { title: "Cards", href: "/analytics/cards", icon: CreditCard },
   { title: "Websites", href: "/analytics/websites", icon: Globe },
   { title: "Brands", href: "/analytics/brands", icon: Tag },
+  { title: "Talk to admin", href: "/messages", icon: MessageCircle },
   { title: "Feedback", href: "/feedback", icon: MessageSquare },
   { title: "Profile & Settings", href: "/settings", icon: Settings },
 ]

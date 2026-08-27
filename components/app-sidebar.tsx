@@ -22,7 +22,9 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-2">
         <ul className="flex flex-col gap-1">
-          {navItems.map((item) => {
+          {navItems
+            .filter((item) => !(isAdmin && item.href === "/messages"))
+            .map((item) => {
             const active =
               item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href)
             return (
