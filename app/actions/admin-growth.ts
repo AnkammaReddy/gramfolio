@@ -31,8 +31,13 @@ export type AdminGrowthActiveSession = {
 export type AdminGrowthSessionKpi = {
   activeNow: number;
   loggedInToday: number;
-  activeThisWeek: number;
-  totalActiveSessions: number;
+};
+
+export type AdminGrowthDemoStats = {
+  totalLogins: number;
+  uniqueIps: number;
+  last24h: number;
+  last7d: number;
 };
 
 export type AdminGrowthDailyPoint = {
@@ -47,6 +52,7 @@ export type AdminGrowthData = {
   daily: AdminGrowthDailyPoint[];
   recentMembers: AdminGrowthMember[];
   sessionKpi: AdminGrowthSessionKpi;
+  demoStats: AdminGrowthDemoStats;
   activeSessions: AdminGrowthActiveSession[];
 };
 
@@ -140,24 +146,51 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
   const [sessionKpiRow] = asRows<{
     active_now: string;
     logged_in_today: string;
-    active_this_week: string;
-    total_active_sessions: string;
   }>(
     await db.execute(sql`
       SELECT
         COUNT(DISTINCT s."userId")
           FILTER (WHERE GREATEST(s."updatedAt", s."createdAt") > now() - interval '2 hours'
-                AND s."expiresAt" > now())                                            AS active_now,
+                AND s."expiresAt" > now())                                     AS active_now,
         COUNT(DISTINCT s."userId")
-          FILTER (WHERE DATE(s."createdAt" AT TIME ZONE 'UTC') = CURRENT_DATE)        AS logged_in_today,
-        COUNT(DISTINCT s."userId")
-          FILTER (WHERE s."updatedAt" > now() - interval '7 days'
-                AND s."expiresAt" > now())                                            AS active_this_week,
-        COUNT(*)
-          FILTER (WHERE s."expiresAt" > now())                                        AS total_active_sessions
+          FILTER (WHERE DATE(s."createdAt" AT TIME ZONE 'UTC') = CURRENT_DATE) AS logged_in_today
       FROM session s
     `),
   );
+
+  let demoStats: AdminGrowthDemoStats = {
+    totalLogins: 0,
+    uniqueIps: 0,
+    last24h: 0,
+    last7d: 0,
+  };
+  try {
+    const [demoRow] = asRows<{
+      total_logins: string;
+      unique_ips: string;
+      last_24h: string;
+      last_7d: string;
+    }>(
+      await db.execute(sql`
+        SELECT
+          COUNT(*)::int                                                           AS total_logins,
+          COUNT(DISTINCT ip)::int                                                 AS unique_ips,
+          COUNT(*) FILTER (WHERE "createdAt" > now() - interval '24 hours')::int AS last_24h,
+          COUNT(*) FILTER (WHERE "createdAt" > now() - interval '7 days')::int   AS last_7d
+        FROM demo_logins
+      `),
+    );
+    if (demoRow) {
+      demoStats = {
+        totalLogins: Number(demoRow.total_logins),
+        uniqueIps: Number(demoRow.unique_ips),
+        last24h: Number(demoRow.last_24h),
+        last7d: Number(demoRow.last_7d),
+      };
+    }
+  } catch {
+    /* demo_logins table may not exist */
+  }
 
   const activeSessionRows = asRows<{
     id: string;
@@ -168,7 +201,6 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
     first_session: string;
     last_active: string;
     last_ip: string | null;
-    is_active_now: boolean;
     new_today: boolean;
   }>(
     await db.execute(sql`
@@ -181,7 +213,6 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
         MIN(s."createdAt")                                                      AS first_session,
         MAX(s."updatedAt")                                                      AS last_active,
         MAX(s."ipAddress")                                                      AS last_ip,
-        BOOL_OR(GREATEST(s."updatedAt", s."createdAt") > now() - interval '2 hours') AS is_active_now,
         BOOL_OR(DATE(s."createdAt" AT TIME ZONE 'UTC') = CURRENT_DATE)         AS new_today
       FROM "user" u
       INNER JOIN session s ON s."userId" = u.id
@@ -212,9 +243,8 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
     sessionKpi: {
       activeNow: Number(sessionKpiRow?.active_now ?? 0),
       loggedInToday: Number(sessionKpiRow?.logged_in_today ?? 0),
-      activeThisWeek: Number(sessionKpiRow?.active_this_week ?? 0),
-      totalActiveSessions: Number(sessionKpiRow?.total_active_sessions ?? 0),
     },
+    demoStats,
     activeSessions: activeSessionRows.map((row) => ({
       id: row.id,
       name: row.name,
@@ -224,7 +254,6 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
       firstSession: row.first_session,
       lastActive: row.last_active,
       lastIp: row.last_ip,
-      isActiveNow: row.is_active_now,
       newToday: row.new_today,
     })),
   };

@@ -102,10 +102,29 @@ function CompactStat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-md border border-border bg-muted/30 px-2.5 py-2">
-      <p className="text-[11px] leading-tight text-muted-foreground">{label}</p>
-      <p className="text-lg font-semibold tabular-nums leading-tight">{value}</p>
-      {hint ? <p className="text-[10px] leading-tight text-muted-foreground">{hint}</p> : null}
+    <div className="min-w-[4.5rem] flex-1 rounded border border-border/80 bg-muted/20 px-2 py-1">
+      <p className="truncate text-[10px] leading-none text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-base font-semibold tabular-nums leading-none">{value}</p>
+      {hint ? (
+        <p className="mt-0.5 truncate text-[9px] leading-none text-muted-foreground">{hint}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function KpiGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 flex-col gap-1 rounded-md border border-border/60 bg-muted/10 p-1.5">
+      <p className="px-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </p>
+      <div className="flex flex-wrap gap-1">{children}</div>
     </div>
   );
 }
@@ -161,35 +180,31 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
       </div>
 
       <Card>
-        <CardContent className="space-y-3 p-4">
-          <div>
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              Growth
-            </p>
-            <div className="grid grid-cols-3 gap-2">
+        <CardContent className="p-2.5">
+          <div className="flex flex-col gap-1.5 lg:flex-row">
+            <KpiGroup title="Growth">
               <CompactStat
-                label="Total members"
+                label="Members"
                 value={data.totalMembers}
-                hint={`+${rangeNewMembers} in range`}
+                hint={`+${rangeNewMembers}`}
               />
               <CompactStat
-                label="Total purchases"
+                label="Purchases"
                 value={data.totalPurchases}
-                hint={`+${rangeNewPurchases} in range`}
+                hint={`+${rangeNewPurchases}`}
               />
-              <CompactStat label="Avg / member" value={avgPurchases} hint="All-time" />
-            </div>
-          </div>
-          <div>
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              Sessions
-            </p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <CompactStat label="Active (2h)" value={data.sessionKpi.activeNow} />
-              <CompactStat label="Logged in today" value={data.sessionKpi.loggedInToday} />
-              <CompactStat label="Active this week" value={data.sessionKpi.activeThisWeek} />
-              <CompactStat label="Live sessions" value={data.sessionKpi.totalActiveSessions} />
-            </div>
+              <CompactStat label="Avg / user" value={avgPurchases} />
+            </KpiGroup>
+            <KpiGroup title="Sessions">
+              <CompactStat label="Active 2h" value={data.sessionKpi.activeNow} />
+              <CompactStat label="Today" value={data.sessionKpi.loggedInToday} />
+            </KpiGroup>
+            <KpiGroup title="Demo">
+              <CompactStat label="Total" value={data.demoStats.totalLogins} />
+              <CompactStat label="24h" value={data.demoStats.last24h} />
+              <CompactStat label="7d" value={data.demoStats.last7d} />
+              <CompactStat label="IPs" value={data.demoStats.uniqueIps} />
+            </KpiGroup>
           </div>
         </CardContent>
       </Card>
