@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -25,6 +24,7 @@ import { ChartTooltip } from "@/components/charts/chart-tooltip";
 import type {
   AdminGrowthActiveSession,
   AdminGrowthData,
+  AdminGrowthDailyPoint,
   AdminGrowthMember,
 } from "@/app/actions/admin-growth";
 import { formatDate } from "@/lib/format";
@@ -109,41 +109,46 @@ function timeAgo(d: string) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function CompactStat({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string | number;
-  hint?: string;
-}) {
-  return (
-    <div className="min-w-[4rem] flex-1 rounded border border-border/80 bg-muted/20 px-2 py-1">
-      <p className="truncate text-[10px] leading-none text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold tabular-nums leading-none sm:text-base">
-        {typeof value === "number" ? value.toLocaleString("en-IN") : value}
-      </p>
-      {hint ? (
-        <p className="mt-0.5 truncate text-[9px] leading-none text-muted-foreground">{hint}</p>
-      ) : null}
-    </div>
-  );
+function rangeLabel(range: RangeKey) {
+  return RANGE_OPTIONS.find((o) => o.key === range)?.label ?? range;
 }
 
-function KpiGroup({
-  title,
-  children,
+function KpiTile({
+  label,
+  value,
+  sub,
+  accent,
 }: {
-  title: string;
-  children: ReactNode;
+  label: string;
+  value: number;
+  sub?: string;
+  accent?: "chart-1" | "chart-2" | "green" | "blue" | "amber";
 }) {
+  const accentClass =
+    accent === "chart-1"
+      ? "border-l-[var(--color-chart-1)]"
+      : accent === "chart-2"
+        ? "border-l-[var(--color-chart-2)]"
+        : accent === "green"
+          ? "border-l-green-500"
+          : accent === "blue"
+            ? "border-l-blue-500"
+            : accent === "amber"
+              ? "border-l-amber-500"
+              : "border-l-border";
+
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1 rounded-md border border-border/60 bg-muted/10 p-1.5">
-      <p className="px-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
+    <div
+      className={cn(
+        "rounded-lg border border-border bg-card px-3 py-2.5 border-l-[3px]",
+        accentClass,
+      )}
+    >
+      <p className="text-[11px] leading-tight text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-semibold tabular-nums leading-none sm:text-2xl">
+        {value.toLocaleString("en-IN")}
       </p>
-      <div className="flex flex-wrap gap-1">{children}</div>
+      {sub ? <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{sub}</p> : null}
     </div>
   );
 }
@@ -156,7 +161,7 @@ function RangeFilter({
   onChange: (v: RangeKey) => void;
 }) {
   return (
-    <div className="w-full overflow-x-auto pb-0.5 sm:w-auto sm:overflow-visible">
+    <div className="w-full overflow-x-auto pb-0.5">
       <div className="inline-flex min-w-max items-center rounded-lg border border-border bg-muted p-0.5 text-xs font-medium">
         {RANGE_OPTIONS.map((option) => (
           <button
@@ -164,7 +169,7 @@ function RangeFilter({
             type="button"
             onClick={() => onChange(option.key)}
             className={cn(
-              "rounded-md px-2 py-1 transition-colors sm:px-2.5",
+              "rounded-md px-2.5 py-1 transition-colors",
               value === option.key
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -175,6 +180,116 @@ function RangeFilter({
         ))}
       </div>
     </div>
+  );
+}
+
+function DailyActivityChart({
+  title,
+  dataKey,
+  data,
+  rangeTotal,
+  range,
+  colorVar,
+  gradientId,
+}: {
+  title: string;
+  dataKey: "newMembers" | "newPurchases";
+  data: AdminGrowthDailyPoint[];
+  rangeTotal: number;
+  range: RangeKey;
+  colorVar: string;
+  gradientId: string;
+}) {
+  const useScrollChart = data.length > 10;
+  const chartMinWidth = Math.max(data.length * 44, 260);
+  const showDots = data.length <= 14;
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="space-y-1 p-4 pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+          <span
+            className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium tabular-nums"
+            style={{
+              backgroundColor: `color-mix(in oklab, ${colorVar} 15%, transparent)`,
+              color: colorVar,
+            }}
+          >
+            +{rangeTotal.toLocaleString("en-IN")} · {rangeLabel(range)}
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        {data.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">No data in range.</p>
+        ) : (
+          <div className={cn(useScrollChart && "overflow-x-auto -mx-1 px-1 pb-1")}>
+            <div
+              className="h-[200px] sm:h-[220px]"
+              style={useScrollChart ? { minWidth: chartMinWidth } : undefined}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data} margin={{ left: 0, right: 4, top: 4, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={colorVar} stopOpacity={0.35} />
+                      <stop offset="95%" stopColor={colorVar} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--color-border)"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(d) => tickDate(String(d), useScrollChart)}
+                    {...axisProps}
+                    interval={useScrollChart ? 0 : "preserveStartEnd"}
+                    minTickGap={useScrollChart ? 18 : 24}
+                    angle={useScrollChart ? -35 : 0}
+                    textAnchor={useScrollChart ? "end" : "middle"}
+                    height={useScrollChart ? 44 : 22}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    width={34}
+                    tickFormatter={formatAxisNum}
+                    {...axisProps}
+                  />
+                  <Tooltip
+                    content={({ active, payload, label }) => (
+                      <ChartTooltip
+                        active={active}
+                        payload={payload as never}
+                        label={label as string}
+                        formatter={(v) => Number(v).toLocaleString("en-IN")}
+                        labelIsDate
+                      />
+                    )}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey={dataKey}
+                    name={title}
+                    stroke={colorVar}
+                    fill={`url(#${gradientId})`}
+                    strokeWidth={2}
+                    dot={
+                      showDots
+                        ? { r: 2.5, fill: colorVar, stroke: "var(--color-background)", strokeWidth: 1 }
+                        : false
+                    }
+                    activeDot={{ r: 4 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -239,9 +354,7 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
 
   const rangeNewMembers = sumField(filteredDaily, "newMembers");
   const rangeNewPurchases = sumField(filteredDaily, "newPurchases");
-
-  const chartMinWidth = Math.max(filteredDaily.length * 44, 280);
-  const useScrollChart = filteredDaily.length > 10;
+  const rangeText = rangeLabel(range);
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 px-3 py-4 sm:space-y-6 sm:px-4 sm:py-8">
@@ -252,159 +365,71 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="p-2 sm:p-2.5">
-          <div className="flex flex-col gap-1.5 lg:flex-row">
-            <KpiGroup title="Growth">
-              <CompactStat
-                label="Members"
-                value={data.totalMembers}
-                hint={`+${rangeNewMembers} in range`}
-              />
-              <CompactStat
-                label="Purchases"
-                value={data.totalPurchases}
-                hint={`+${rangeNewPurchases} in range`}
-              />
-            </KpiGroup>
-            <KpiGroup title="Sessions">
-              <CompactStat label="Active 2h" value={data.sessionKpi.activeNow} />
-              <CompactStat label="Today" value={data.sessionKpi.loggedInToday} />
-            </KpiGroup>
-            <KpiGroup title="Demo">
-              <CompactStat label="7 days" value={data.demoStats?.last7d ?? 0} />
-              <CompactStat label="IPs (7d)" value={data.demoStats?.uniqueIps7d ?? 0} />
-            </KpiGroup>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <KpiTile
+          label="Total members"
+          value={data.totalMembers}
+          sub={`+${rangeNewMembers} in ${rangeText}`}
+          accent="chart-1"
+        />
+        <KpiTile
+          label="Total purchases"
+          value={data.totalPurchases}
+          sub={`+${rangeNewPurchases.toLocaleString("en-IN")} in ${rangeText}`}
+          accent="chart-2"
+        />
+        <KpiTile
+          label="Active (2h)"
+          value={data.sessionKpi.activeNow}
+          sub="Live members"
+          accent="green"
+        />
+        <KpiTile
+          label="Logged in today"
+          value={data.sessionKpi.loggedInToday}
+          sub="New sessions"
+          accent="blue"
+        />
+        <KpiTile
+          label="Demo logins"
+          value={data.demoStats?.last7d ?? 0}
+          sub="Last 7 days"
+          accent="amber"
+        />
+        <KpiTile
+          label="Demo IPs"
+          value={data.demoStats?.uniqueIps7d ?? 0}
+          sub="Unique · 7 days"
+          accent="amber"
+        />
+      </div>
 
-      <Card>
-        <CardHeader className="gap-3 space-y-0 p-4 pb-2 sm:p-6 sm:pb-2">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <CardTitle className="text-base">Daily activity</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                New sign-ups vs purchases — separate scales when volumes differ
-              </p>
-            </div>
-            <RangeFilter value={range} onChange={setRange} />
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/30 px-2 py-0.5">
-              <span className="h-2 w-2 rounded-full bg-[var(--color-chart-1)]" />
-              Members{" "}
-              <span className="font-semibold tabular-nums text-foreground">{rangeNewMembers}</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/30 px-2 py-0.5">
-              <span className="h-2 w-2 rounded-full bg-[var(--color-chart-2)]" />
-              Purchases{" "}
-              <span className="font-semibold tabular-nums text-foreground">
-                {rangeNewPurchases.toLocaleString("en-IN")}
-              </span>
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-          {filteredDaily.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              No activity in this range yet.
-            </p>
-          ) : (
-            <div
-              className={cn(
-                useScrollChart && "overflow-x-auto pb-1 -mx-1 px-1",
-              )}
-            >
-              <div
-                className="h-[240px] sm:h-[280px]"
-                style={useScrollChart ? { minWidth: chartMinWidth } : undefined}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={filteredDaily}
-                    margin={{ left: 0, right: 4, top: 8, bottom: 4 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="var(--color-border)"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(d) => tickDate(String(d), useScrollChart)}
-                      {...axisProps}
-                      interval={useScrollChart ? 0 : "preserveStartEnd"}
-                      minTickGap={useScrollChart ? 20 : 28}
-                      angle={useScrollChart ? -35 : 0}
-                      textAnchor={useScrollChart ? "end" : "middle"}
-                      height={useScrollChart ? 48 : 24}
-                    />
-                    <YAxis
-                      yAxisId="members"
-                      orientation="left"
-                      allowDecimals={false}
-                      width={36}
-                      tickFormatter={formatAxisNum}
-                      {...axisProps}
-                    />
-                    <YAxis
-                      yAxisId="purchases"
-                      orientation="right"
-                      allowDecimals={false}
-                      width={40}
-                      tickFormatter={formatAxisNum}
-                      {...axisProps}
-                    />
-                    <Tooltip
-                      content={({ active, payload, label }) => (
-                        <ChartTooltip
-                          active={active}
-                          payload={payload as never}
-                          label={label as string}
-                          formatter={(v) => Number(v).toLocaleString("en-IN")}
-                          labelIsDate
-                        />
-                      )}
-                    />
-                    <Legend
-                      wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-                      formatter={(value) =>
-                        value === "newMembers" ? "New members" : "New purchases"
-                      }
-                    />
-                    <Line
-                      yAxisId="members"
-                      type="monotone"
-                      dataKey="newMembers"
-                      name="newMembers"
-                      stroke="var(--color-chart-1)"
-                      strokeWidth={2}
-                      dot={filteredDaily.length <= 14 ? { r: 2.5, fill: "var(--color-chart-1)" } : false}
-                      activeDot={{ r: 4 }}
-                    />
-                    <Line
-                      yAxisId="purchases"
-                      type="monotone"
-                      dataKey="newPurchases"
-                      name="newPurchases"
-                      stroke="var(--color-chart-2)"
-                      strokeWidth={2}
-                      dot={filteredDaily.length <= 14 ? { r: 2.5, fill: "var(--color-chart-2)" } : false}
-                      activeDot={{ r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-          {useScrollChart ? (
-            <p className="mt-2 text-center text-[10px] text-muted-foreground sm:hidden">
-              Swipe chart horizontally to see all days
-            </p>
-          ) : null}
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium">Daily activity</p>
+          <RangeFilter value={range} onChange={setRange} />
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <DailyActivityChart
+            title="New members"
+            dataKey="newMembers"
+            data={filteredDaily}
+            rangeTotal={rangeNewMembers}
+            range={range}
+            colorVar="var(--color-chart-1)"
+            gradientId="growthMembersFill"
+          />
+          <DailyActivityChart
+            title="New purchases"
+            dataKey="newPurchases"
+            data={filteredDaily}
+            rangeTotal={rangeNewPurchases}
+            range={range}
+            colorVar="var(--color-chart-2)"
+            gradientId="growthPurchasesFill"
+          />
+        </div>
+      </div>
 
       <Card>
         <CardHeader className="p-4 sm:p-6">
