@@ -6,6 +6,16 @@ import { user } from "@/lib/db/schema";
 import { AUTH_DISABLED, DEMO_USER } from "@/lib/auth-config";
 import { getUserId } from "@/lib/session";
 
+export type AdminGrowthRecentPurchaser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  recentPurchaseCount: number;
+  totalPurchaseCount: number;
+  lastPurchaseAt: string;
+};
+
 export type AdminGrowthMember = {
   id: string;
   name: string;
@@ -49,6 +59,7 @@ export type AdminGrowthData = {
   totalPurchases: number;
   daily: AdminGrowthDailyPoint[];
   recentMembers: AdminGrowthMember[];
+  recentPurchasers: AdminGrowthRecentPurchaser[];
   sessionKpi: AdminGrowthSessionKpi;
   demoStats: AdminGrowthDemoStats;
   activeSessions: AdminGrowthActiveSession[];
@@ -154,6 +165,39 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
     `),
   );
 
+  const recentPurchaserRows = asRows<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    recent_purchase_count: string;
+    total_purchase_count: string;
+    last_purchase_at: string;
+  }>(
+    await db.execute(sql`
+      WITH recent AS (
+        SELECT
+          "userId",
+          COUNT(*)::int AS recent_count,
+          MAX("createdAt") AS last_at
+        FROM purchases
+        WHERE "createdAt" > now() - interval '7 days'
+        GROUP BY "userId"
+      )
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.role,
+        r.recent_count AS recent_purchase_count,
+        (SELECT COUNT(*)::int FROM purchases p WHERE p."userId" = u.id) AS total_purchase_count,
+        r.last_at AS last_purchase_at
+      FROM recent r
+      INNER JOIN "user" u ON u.id = r."userId"
+      ORDER BY r.last_at DESC
+    `),
+  );
+
   const [sessionKpiRow] = asRows<{
     active_now: string;
     logged_in_today: string;
@@ -242,6 +286,15 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
       createdAt: toIso(row.created_at) ?? "",
       purchaseCount: toNum(row.purchase_count),
       lastPurchaseAt: toIso(row.last_purchase_at),
+    })),
+    recentPurchasers: recentPurchaserRows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+      recentPurchaseCount: toNum(row.recent_purchase_count),
+      totalPurchaseCount: toNum(row.total_purchase_count),
+      lastPurchaseAt: toIso(row.last_purchase_at) ?? "",
     })),
     sessionKpi: {
       activeNow: toNum(sessionKpiRow?.active_now),
