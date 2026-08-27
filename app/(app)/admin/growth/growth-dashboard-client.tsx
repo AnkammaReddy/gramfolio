@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   Area,
   AreaChart,
@@ -21,13 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
-import type {
-  AdminGrowthActiveSession,
-  AdminGrowthData,
-  AdminGrowthDailyPoint,
-  AdminGrowthMember,
-  AdminGrowthRecentPurchaser,
-} from "@/app/actions/admin-growth";
+import type { AdminGrowthData, AdminGrowthDailyPoint } from "@/app/actions/admin-growth";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -294,80 +288,60 @@ function DailyActivityChart({
   );
 }
 
-function ActiveSessionMobileRow({ session }: { session: AdminGrowthActiveSession }) {
+function RoleBadge({ role }: { role: string }) {
   return (
-    <div className="space-y-1 rounded-lg border border-border px-3 py-2.5 text-sm">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-medium">{session.name}</span>
-        {session.newToday && (
-          <Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-            New today
-          </Badge>
-        )}
-        {session.banned && (
-          <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
-            Banned
-          </Badge>
-        )}
-      </div>
-      <p className="truncate text-xs text-muted-foreground">{session.email}</p>
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-        <span>
-          <span className="text-foreground">{session.sessionCount}</span> sessions
-        </span>
-        <span>Active {timeAgo(session.lastActive)}</span>
-        {session.lastIp ? <span className="font-mono">{session.lastIp}</span> : null}
-      </div>
-    </div>
+    <Badge
+      variant={role === "admin" ? "default" : "secondary"}
+      className={cn(role === "admin" && "bg-primary")}
+    >
+      {role}
+    </Badge>
   );
 }
 
-function RecentPurchaserMobileRow({ user }: { user: AdminGrowthRecentPurchaser }) {
+function MemberTableCell({
+  name,
+  email,
+  trailing,
+}: {
+  name: string;
+  email: string;
+  trailing?: ReactNode;
+}) {
   return (
-    <div className="space-y-1 rounded-lg border border-border px-3 py-2.5 text-sm">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-medium">{user.name}</span>
-        <Badge
-          variant={user.role === "admin" ? "default" : "secondary"}
-          className={cn("h-4 px-1.5 text-[10px]", user.role === "admin" && "bg-primary")}
-        >
-          {user.role}
-        </Badge>
-      </div>
-      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-        <span>
-          <span className="text-foreground">{user.recentPurchaseCount}</span> added this week
-        </span>
-        <span>
-          <span className="text-foreground">{user.totalPurchaseCount}</span> total
-        </span>
-        <span>Last {timeAgo(user.lastPurchaseAt)}</span>
-      </div>
-    </div>
+    <TableCell className="min-w-[160px] whitespace-normal align-top">
+      <p className="font-medium leading-tight">{name}</p>
+      <p className="mt-0.5 max-w-[220px] truncate text-xs text-muted-foreground">{email}</p>
+      {trailing ? <div className="mt-1.5 flex flex-wrap gap-1">{trailing}</div> : null}
+    </TableCell>
   );
 }
 
-function RecentMemberMobileRow({ member }: { member: AdminGrowthMember }) {
+function ScrollTableSection({
+  emptyMessage,
+  isEmpty,
+  minWidth,
+  children,
+}: {
+  emptyMessage: string;
+  isEmpty: boolean;
+  minWidth: number;
+  children: ReactNode;
+}) {
+  if (isEmpty) {
+    return (
+      <CardContent className="p-4 pt-0">
+        <p className="text-center text-sm text-muted-foreground sm:text-left">{emptyMessage}</p>
+      </CardContent>
+    );
+  }
+
   return (
-    <div className="space-y-1 rounded-lg border border-border px-3 py-2.5 text-sm">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-medium">{member.name}</span>
-        <Badge
-          variant={member.role === "admin" ? "default" : "secondary"}
-          className={cn("h-4 px-1.5 text-[10px]", member.role === "admin" && "bg-primary")}
-        >
-          {member.role}
-        </Badge>
+    <CardContent className="p-0">
+      <div className="overflow-x-auto">
+        <Table style={{ minWidth }}>{children}</Table>
       </div>
-      <p className="truncate text-xs text-muted-foreground">{member.email}</p>
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-        <span>
-          <span className="text-foreground">{member.purchaseCount}</span> purchases
-        </span>
-        <span>Joined {formatDate(member.createdAt)}</span>
-      </div>
-    </div>
+    </CardContent>
   );
 }
 
@@ -466,71 +440,56 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
             recent session activity
           </p>
         </CardHeader>
-        <CardContent className="space-y-2 p-4 pt-0 sm:hidden">
-          {data.activeSessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active users in the last 2 hours.</p>
-          ) : (
-            data.activeSessions.map((session) => (
-              <ActiveSessionMobileRow key={session.id} session={session} />
-            ))
-          )}
-        </CardContent>
-        <CardContent className="hidden p-0 sm:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="text-right">Sessions</TableHead>
-                <TableHead>Last active</TableHead>
-                <TableHead>First login</TableHead>
-                <TableHead>IP</TableHead>
+        <ScrollTableSection
+          emptyMessage="No active users in the last 2 hours."
+          isEmpty={data.activeSessions.length === 0}
+          minWidth={520}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Member</TableHead>
+              <TableHead className="text-right">Sessions</TableHead>
+              <TableHead>Last active</TableHead>
+              <TableHead className="hidden md:table-cell">First login</TableHead>
+              <TableHead className="hidden lg:table-cell">IP</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.activeSessions.map((session) => (
+              <TableRow key={session.id}>
+                <MemberTableCell
+                  name={session.name}
+                  email={session.email}
+                  trailing={
+                    <>
+                      {session.newToday && (
+                        <Badge variant="outline" className="h-4 px-1.5 text-[10px]">
+                          New today
+                        </Badge>
+                      )}
+                      {session.banned && (
+                        <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
+                          Banned
+                        </Badge>
+                      )}
+                    </>
+                  }
+                />
+                <TableCell className="text-right tabular-nums">{session.sessionCount}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  <span className="md:hidden">{timeAgo(session.lastActive)}</span>
+                  <span className="hidden md:inline">{formatDateTime(session.lastActive)}</span>
+                </TableCell>
+                <TableCell className="hidden whitespace-nowrap text-muted-foreground md:table-cell">
+                  {formatDateTime(session.firstSession)}
+                </TableCell>
+                <TableCell className="hidden font-mono text-xs text-muted-foreground lg:table-cell">
+                  {session.lastIp ?? "—"}
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.activeSessions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    No active users in the last 2 hours.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.activeSessions.map((session) => (
-                  <TableRow key={session.id}>
-                    <TableCell className="font-medium">
-                      <span className="inline-flex items-center gap-2">
-                        {session.name}
-                        {session.newToday && (
-                          <Badge variant="outline" className="h-4 px-1.5 text-[10px]">
-                            New today
-                          </Badge>
-                        )}
-                        {session.banned && (
-                          <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
-                            Banned
-                          </Badge>
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{session.email}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {session.sessionCount}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {timeAgo(session.lastActive)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDateTime(session.firstSession)}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {session.lastIp ?? "—"}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
+            ))}
+          </TableBody>
+        </ScrollTableSection>
       </Card>
 
       <Card>
@@ -541,62 +500,49 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
             {data.recentPurchasers.length === 1 ? "" : "s"} who added purchases this week
           </p>
         </CardHeader>
-        <CardContent className="space-y-2 p-4 pt-0 sm:hidden">
-          {data.recentPurchasers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No purchases added in the last week.</p>
-          ) : (
-            data.recentPurchasers.map((user) => (
-              <RecentPurchaserMobileRow key={user.id} user={user} />
-            ))
-          )}
-        </CardContent>
-        <CardContent className="hidden p-0 sm:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="text-right">This week</TableHead>
-                <TableHead className="text-right">All-time</TableHead>
-                <TableHead>Last added</TableHead>
+        <ScrollTableSection
+          emptyMessage="No purchases added in the last week."
+          isEmpty={data.recentPurchasers.length === 0}
+          minWidth={480}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Member</TableHead>
+              <TableHead className="hidden sm:table-cell">Role</TableHead>
+              <TableHead className="text-right">This week</TableHead>
+              <TableHead className="text-right">All-time</TableHead>
+              <TableHead>Last added</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.recentPurchasers.map((user) => (
+              <TableRow key={user.id}>
+                <MemberTableCell
+                  name={user.name}
+                  email={user.email}
+                  trailing={
+                    <span className="sm:hidden">
+                      <RoleBadge role={user.role} />
+                    </span>
+                  }
+                />
+                <TableCell className="hidden sm:table-cell">
+                  <RoleBadge role={user.role} />
+                </TableCell>
+                <TableCell className="text-right tabular-nums font-medium">
+                  {user.recentPurchaseCount}
+                </TableCell>
+                <TableCell className="text-right tabular-nums text-muted-foreground">
+                  {user.totalPurchaseCount}
+                </TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  <span className="md:hidden">{timeAgo(user.lastPurchaseAt)}</span>
+                  <span className="hidden md:inline">{formatDateTime(user.lastPurchaseAt)}</span>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.recentPurchasers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    No purchases added in the last week.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.recentPurchasers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={user.role === "admin" ? "default" : "secondary"}
-                        className={cn(user.role === "admin" && "bg-primary")}
-                      >
-                        {user.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums font-medium">
-                      {user.recentPurchaseCount}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">
-                      {user.totalPurchaseCount}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDateTime(user.lastPurchaseAt)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
+            ))}
+          </TableBody>
+        </ScrollTableSection>
       </Card>
 
       <Card>
@@ -607,62 +553,46 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
             {data.recentMembers.length === 1 ? "" : "s"} in the past 7 days
           </p>
         </CardHeader>
-        <CardContent className="space-y-2 p-4 pt-0 sm:hidden">
-          {data.recentMembers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No new members in the last week.</p>
-          ) : (
-            data.recentMembers.map((member) => (
-              <RecentMemberMobileRow key={member.id} member={member} />
-            ))
-          )}
-        </CardContent>
-        <CardContent className="hidden p-0 sm:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="text-right">Purchases</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Last purchase</TableHead>
+        <ScrollTableSection
+          emptyMessage="No new members in the last week."
+          isEmpty={data.recentMembers.length === 0}
+          minWidth={480}
+        >
+          <TableHeader>
+            <TableRow>
+              <TableHead>Member</TableHead>
+              <TableHead className="hidden sm:table-cell">Role</TableHead>
+              <TableHead className="text-right">Purchases</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead className="hidden md:table-cell">Last purchase</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.recentMembers.map((member) => (
+              <TableRow key={member.id}>
+                <MemberTableCell
+                  name={member.name}
+                  email={member.email}
+                  trailing={
+                    <span className="sm:hidden">
+                      <RoleBadge role={member.role} />
+                    </span>
+                  }
+                />
+                <TableCell className="hidden sm:table-cell">
+                  <RoleBadge role={member.role} />
+                </TableCell>
+                <TableCell className="text-right tabular-nums">{member.purchaseCount}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  {formatDate(member.createdAt)}
+                </TableCell>
+                <TableCell className="hidden whitespace-nowrap text-muted-foreground md:table-cell">
+                  {member.lastPurchaseAt ? formatDateTime(member.lastPurchaseAt) : "—"}
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.recentMembers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    No new members in the last week.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.recentMembers.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">{member.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{member.email}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={member.role === "admin" ? "default" : "secondary"}
-                        className={cn(member.role === "admin" && "bg-primary")}
-                      >
-                        {member.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {member.purchaseCount}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(member.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDateTime(member.lastPurchaseAt)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
+            ))}
+          </TableBody>
+        </ScrollTableSection>
       </Card>
     </div>
   );
