@@ -4,7 +4,7 @@
 # Database selection (in priority order):
 #   1. An external DATABASE_URL from the environment (e.g. a Neon dev-branch
 #      URL provided as a Cloud Agent secret). When present, the local Postgres
-#      is NOT provisioned and the app talks to that database directly.
+#      is NOT provisioned; dev-schema.sql is still applied to that database.
 #   2. Otherwise, a self-contained local PostgreSQL is installed, started, and
 #      seeded with scripts/dev-schema.sql.
 #
@@ -46,6 +46,9 @@ if [ -n "$EXTERNAL_DB_URL" ]; then
     echo "[install]   Checklist: URL user/password/host/db correct; include sslmode=require (Neon);"
     echo "[install]   egress to the DB host allowed (allowlist *.neon.tech if egress is restricted)."
   fi
+
+  echo "[install] Applying dev schema to external database..."
+  DATABASE_URL="$EXTERNAL_DB_URL" node scripts/apply-dev-schema.mjs
 else
   echo "[install] No external DATABASE_URL — provisioning local PostgreSQL."
   DB_URL="$LOCAL_DB_URL"
@@ -83,10 +86,13 @@ corepack pnpm install --frozen-lockfile
 # Reuse an existing generated secret so sessions survive reruns; otherwise
 # prefer an externally supplied BETTER_AUTH_SECRET, else generate one.
 EXISTING_SECRET=""
+EXISTING_MSG_KEY=""
 if [ -f .env.local ]; then
   EXISTING_SECRET="$(grep -E '^BETTER_AUTH_SECRET=' .env.local | head -n1 | cut -d= -f2- || true)"
+  EXISTING_MSG_KEY="$(grep -E '^MESSAGE_ENCRYPTION_KEY=' .env.local | head -n1 | cut -d= -f2- || true)"
 fi
 SECRET="${EXISTING_SECRET:-${BETTER_AUTH_SECRET:-$(openssl rand -base64 32)}}"
+MSG_KEY="${EXISTING_MSG_KEY:-${MESSAGE_ENCRYPTION_KEY:-$(openssl rand -base64 32)}}"
 
 echo "[install] Writing .env.local (DATABASE_URL$([ -n "$EXTERNAL_DB_URL" ] && echo ' = external/Neon' || echo ' = local Postgres'))..."
 cat > .env.local <<EOF
@@ -96,6 +102,7 @@ cat > .env.local <<EOF
 # Cloud Agent Secrets panel and re-run install — it takes precedence over local.
 DATABASE_URL=$DB_URL
 BETTER_AUTH_SECRET=$SECRET
+MESSAGE_ENCRYPTION_KEY=$MSG_KEY
 BETTER_AUTH_URL=http://localhost:3000
 EOF
 

@@ -16,6 +16,7 @@ import { db } from "@/lib/db"
 import { user as userTable } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { AUTH_DISABLED } from "@/lib/auth-config"
+import { TalkToAdminFab } from "@/components/messages/talk-to-admin-fab"
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -62,6 +63,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               </div>
             )}
             <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+            {!isAdmin && <TalkToAdminFab />}
           </div>
         </div>
       </GraphModeProvider>

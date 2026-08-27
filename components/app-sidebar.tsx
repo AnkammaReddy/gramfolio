@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { navItems } from "@/lib/nav"
 import { cn } from "@/lib/utils"
-import { Coins, MessageSquare, LineChart, ShieldAlert, Lightbulb, TrendingUp } from "lucide-react"
+import { Coins, MessageSquare, MessageCircle, LineChart, ShieldAlert, Lightbulb, TrendingUp } from "lucide-react"
 
 export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname()
@@ -22,7 +22,9 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-2">
         <ul className="flex flex-col gap-1">
-          {navItems.map((item) => {
+          {navItems
+            .filter((item) => !(isAdmin && item.href === "/messages"))
+            .map((item) => {
             const active =
               item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href)
             return (
@@ -75,6 +77,20 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
                 >
                   <LineChart className="h-[18px] w-[18px]" />
                   Bullion Prices
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/messages"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    pathname === "/admin/messages"
+                      ? "bg-primary/15 text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  )}
+                >
+                  <MessageCircle className="h-[18px] w-[18px]" />
+                  Conversations
                 </Link>
               </li>
               <li>

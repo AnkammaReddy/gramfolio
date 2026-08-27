@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Coins, Lightbulb, LineChart, Menu, LogOut, MessageSquare, Settings as SettingsIcon, ShieldAlert, TrendingUp } from "lucide-react"
+import { Coins, Lightbulb, LineChart, Menu, LogOut, MessageCircle, MessageSquare, Settings as SettingsIcon, ShieldAlert, TrendingUp } from "lucide-react"
 
 function titleFor(pathname: string) {
   const match = [...navItems]
@@ -79,7 +79,9 @@ export function AppHeader({
           </div>
           <nav className="px-3 py-2">
             <ul className="flex flex-col gap-1">
-              {navItems.map((item) => {
+              {navItems
+                .filter((item) => !(isAdmin && item.href === "/messages"))
+                .map((item) => {
                 const active =
                   item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href)
                 return (
@@ -136,6 +138,21 @@ export function AppHeader({
                   >
                     <LineChart className="h-[18px] w-[18px]" />
                     Bullion Prices
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/admin/messages"
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      pathname === "/admin/messages"
+                        ? "bg-primary/15 text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    <MessageCircle className="h-[18px] w-[18px]" />
+                    Conversations
                   </Link>
                 </li>
                 <li>

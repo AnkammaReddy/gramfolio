@@ -202,6 +202,32 @@ CREATE TABLE IF NOT EXISTS "feedback" (
   "readAt"    timestamp
 );
 
+CREATE TABLE IF NOT EXISTS "conversations" (
+  "id"            serial PRIMARY KEY,
+  "userId"        text NOT NULL UNIQUE,
+  "lastMessageAt" timestamp NOT NULL DEFAULT now(),
+  "createdAt"     timestamp NOT NULL DEFAULT now(),
+  "updatedAt"     timestamp NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS "messages" (
+  "id"                serial PRIMARY KEY,
+  "conversationId"    integer NOT NULL,
+  "senderId"          text NOT NULL,
+  "senderRole"        text NOT NULL,
+  "bodyCiphertext"    text NOT NULL,
+  "encryptionVersion" integer NOT NULL DEFAULT 1,
+  "createdAt"         timestamp NOT NULL DEFAULT now(),
+  "readAt"            timestamp
+);
+
+CREATE INDEX IF NOT EXISTS "messages_conversation_created_idx"
+  ON "messages" ("conversationId", "createdAt" DESC);
+
+CREATE INDEX IF NOT EXISTS "messages_conversation_unread_idx"
+  ON "messages" ("conversationId", "readAt")
+  WHERE "readAt" IS NULL;
+
 CREATE TABLE IF NOT EXISTS "signup_rate_limit" (
   "id"          serial PRIMARY KEY,
   "ip"          text NOT NULL,
