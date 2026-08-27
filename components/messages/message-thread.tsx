@@ -54,6 +54,10 @@ export function MessageThread({
       } catch (e) {
         if (e instanceof Error && e.message === "DEMO_READ_ONLY") {
           toast.info("Read-only in demo mode")
+        } else if (e instanceof Error && e.message === "RATE_LIMIT") {
+          toast.error("Too many messages sent. Please wait before sending more.")
+        } else if (e instanceof Error && e.message === "Forbidden") {
+          toast.error("Messaging is not available for this account.")
         } else {
           toast.error("Failed to send message")
         }

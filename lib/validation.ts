@@ -133,3 +133,5 @@ export const messageBodySchema = z
   .max(2000, "Message must be 2000 characters or fewer")
   .transform(sanitizeText)
   .refine((v) => v.length >= 1, "Message cannot be empty")
+
+export const conversationIdSchema = z.number().int().positive()

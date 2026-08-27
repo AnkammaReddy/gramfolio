@@ -5,7 +5,12 @@ import { conversations, messages, user } from "@/lib/db/schema"
 import { getUserId } from "@/lib/session"
 import { AUTH_DISABLED, DEMO_USER, assertNotDemo } from "@/lib/auth-config"
 import { encryptMessage, decryptMessage } from "@/lib/message-crypto"
-import { messageBodySchema } from "@/lib/validation"
+import { messageBodySchema, conversationIdSchema } from "@/lib/validation"
+import {
+  assertUserCanUseMessages,
+  checkMessageSendRateLimit,
+  logMessageSent,
+} from "@/lib/message-security"
 import type { ConversationDTO, MessageDTO, MessageSenderRole } from "@/lib/types"
 import { and, desc, eq, isNull, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
@@ -102,6 +107,7 @@ export async function getMyConversationMessages(): Promise<{
   messages: MessageDTO[]
 }> {
   const userId = AUTH_DISABLED ? DEMO_USER.id : await getUserId()
+  await assertUserCanUseMessages(userId)
   const conversation = await getConversationForMember(userId)
   if (!conversation) {
     return { conversationId: null, messages: [] }
@@ -115,6 +121,8 @@ export async function getMyConversationMessages(): Promise<{
 export async function sendMemberMessage(body: string) {
   const userId = AUTH_DISABLED ? DEMO_USER.id : await getUserId()
   assertNotDemo(userId)
+  await assertUserCanUseMessages(userId)
+  await checkMessageSendRateLimit(userId, "member")
   const parsed = messageBodySchema.parse(body)
   const conversation = await getOrCreateConversation(userId)
   const { ciphertext, version } = encryptMessage(parsed)
@@ -133,6 +141,7 @@ export async function sendMemberMessage(body: string) {
     .set({ lastMessageAt: now, updatedAt: now })
     .where(eq(conversations.id, conversation.id))
 
+  await logMessageSent(userId, "member", conversation.id)
   revalidatePath("/messages")
   revalidatePath("/admin/messages")
 }
@@ -172,22 +181,25 @@ export async function getAdminConversationMessages(
   conversationId: number,
 ): Promise<MessageDTO[]> {
   const adminId = await requireAdminUserId()
-  await assertCanAccessConversation(conversationId, adminId)
-  const list = await fetchMessages(conversationId, adminId)
-  await markConversationReadInternal(conversationId, adminId)
+  const id = conversationIdSchema.parse(conversationId)
+  await assertCanAccessConversation(id, adminId)
+  const list = await fetchMessages(id, adminId)
+  await markConversationReadInternal(id, adminId)
   return list
 }
 
 export async function sendAdminMessage(conversationId: number, body: string) {
   const adminId = await requireAdminUserId()
   assertNotDemo(adminId)
-  await assertCanAccessConversation(conversationId, adminId)
+  const id = conversationIdSchema.parse(conversationId)
+  await assertCanAccessConversation(id, adminId)
+  await checkMessageSendRateLimit(adminId, "admin")
   const parsed = messageBodySchema.parse(body)
   const { ciphertext, version } = encryptMessage(parsed)
   const now = new Date()
 
   await db.insert(messages).values({
-    conversationId,
+    conversationId: id,
     senderId: adminId,
     senderRole: "admin",
     bodyCiphertext: ciphertext,
@@ -197,8 +209,9 @@ export async function sendAdminMessage(conversationId: number, body: string) {
   await db
     .update(conversations)
     .set({ lastMessageAt: now, updatedAt: now })
-    .where(eq(conversations.id, conversationId))
+    .where(eq(conversations.id, id))
 
+  await logMessageSent(adminId, "admin", id)
   revalidatePath("/messages")
   revalidatePath("/admin/messages")
 }
