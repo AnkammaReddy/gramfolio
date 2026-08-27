@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Activity, Coins, Lightbulb, LineChart, Menu, LogOut, MessageSquare, Settings as SettingsIcon, ShieldCheck, ShieldAlert, TrendingUp } from "lucide-react"
+import { Coins, Lightbulb, LineChart, Menu, LogOut, MessageSquare, Settings as SettingsIcon, ShieldAlert, TrendingUp } from "lucide-react"
 
 function titleFor(pathname: string) {
   const match = [...navItems]
@@ -125,21 +125,6 @@ export function AppHeader({
                 </li>
                 <li>
                   <Link
-                    href="/admin/members"
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      pathname === "/admin/members"
-                        ? "bg-primary/15 text-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                    )}
-                  >
-                    <ShieldCheck className="h-[18px] w-[18px]" />
-                    Members
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     href="/admin/gold-prices"
                     onClick={() => setOpen(false)}
                     className={cn(
@@ -166,21 +151,6 @@ export function AppHeader({
                   >
                     <MessageSquare className="h-[18px] w-[18px]" />
                     Feedback
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/admin/sessions"
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      pathname === "/admin/sessions"
-                        ? "bg-primary/15 text-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                    )}
-                  >
-                    <Activity className="h-[18px] w-[18px]" />
-                    Sessions
                   </Link>
                 </li>
                 <li>

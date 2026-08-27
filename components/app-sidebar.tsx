@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { navItems } from "@/lib/nav"
 import { cn } from "@/lib/utils"
-import { Coins, ShieldCheck, MessageSquare, LineChart, Activity, ShieldAlert, Lightbulb, TrendingUp } from "lucide-react"
+import { Coins, MessageSquare, LineChart, ShieldAlert, Lightbulb, TrendingUp } from "lucide-react"
 
 export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname()
@@ -65,20 +65,6 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
               </li>
               <li>
                 <Link
-                  href="/admin/members"
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === "/admin/members"
-                      ? "bg-primary/15 text-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                  )}
-                >
-                  <ShieldCheck className="h-[18px] w-[18px]" />
-                  Members
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/admin/gold-prices"
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
@@ -103,20 +89,6 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
                 >
                   <MessageSquare className="h-[18px] w-[18px]" />
                   Feedback
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/admin/sessions"
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === "/admin/sessions"
-                      ? "bg-primary/15 text-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                  )}
-                >
-                  <Activity className="h-[18px] w-[18px]" />
-                  Sessions
                 </Link>
               </li>
               <li>
