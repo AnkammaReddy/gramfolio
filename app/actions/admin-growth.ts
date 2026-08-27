@@ -34,10 +34,8 @@ export type AdminGrowthSessionKpi = {
 };
 
 export type AdminGrowthDemoStats = {
-  totalLogins: number;
-  uniqueIps: number;
-  last24h: number;
   last7d: number;
+  uniqueIps7d: number;
 };
 
 export type AdminGrowthDailyPoint = {
@@ -172,33 +170,25 @@ export async function getAdminGrowthData(): Promise<AdminGrowthData> {
   );
 
   let demoStats: AdminGrowthDemoStats = {
-    totalLogins: 0,
-    uniqueIps: 0,
-    last24h: 0,
     last7d: 0,
+    uniqueIps7d: 0,
   };
   try {
     const [demoRow] = asRows<{
-      total_logins: string;
-      unique_ips: string;
-      last_24h: string;
       last_7d: string;
+      unique_ips_7d: string;
     }>(
       await db.execute(sql`
         SELECT
-          COUNT(*)::int                                                           AS total_logins,
-          COUNT(DISTINCT ip)::int                                                 AS unique_ips,
-          COUNT(*) FILTER (WHERE "createdAt" > now() - interval '24 hours')::int AS last_24h,
-          COUNT(*) FILTER (WHERE "createdAt" > now() - interval '7 days')::int   AS last_7d
+          COUNT(*) FILTER (WHERE "createdAt" > now() - interval '7 days')::int AS last_7d,
+          COUNT(DISTINCT ip) FILTER (WHERE "createdAt" > now() - interval '7 days')::int AS unique_ips_7d
         FROM demo_logins
       `),
     );
     if (demoRow) {
       demoStats = {
-        totalLogins: toNum(demoRow.total_logins),
-        uniqueIps: toNum(demoRow.unique_ips),
-        last24h: toNum(demoRow.last_24h),
         last7d: toNum(demoRow.last_7d),
+        uniqueIps7d: toNum(demoRow.unique_ips_7d),
       };
     }
   } catch {

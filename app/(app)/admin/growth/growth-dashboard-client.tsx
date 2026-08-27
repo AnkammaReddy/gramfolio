@@ -167,8 +167,6 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
 
   const rangeNewMembers = sumField(filteredDaily, "newMembers");
   const rangeNewPurchases = sumField(filteredDaily, "newPurchases");
-  const avgPurchases =
-    data.totalMembers > 0 ? (data.totalPurchases / data.totalMembers).toFixed(1) : "0";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
@@ -193,17 +191,14 @@ export function GrowthDashboardClient({ data }: { data: AdminGrowthData }) {
                 value={data.totalPurchases}
                 hint={`+${rangeNewPurchases}`}
               />
-              <CompactStat label="Avg / user" value={avgPurchases} />
             </KpiGroup>
             <KpiGroup title="Sessions">
               <CompactStat label="Active 2h" value={data.sessionKpi.activeNow} />
               <CompactStat label="Today" value={data.sessionKpi.loggedInToday} />
             </KpiGroup>
             <KpiGroup title="Demo">
-              <CompactStat label="Total" value={data.demoStats?.totalLogins ?? 0} />
-              <CompactStat label="24h" value={data.demoStats?.last24h ?? 0} />
-              <CompactStat label="7d" value={data.demoStats?.last7d ?? 0} />
-              <CompactStat label="IPs" value={data.demoStats?.uniqueIps ?? 0} />
+              <CompactStat label="7 days" value={data.demoStats?.last7d ?? 0} />
+              <CompactStat label="IPs (7d)" value={data.demoStats?.uniqueIps7d ?? 0} />
             </KpiGroup>
           </div>
         </CardContent>
