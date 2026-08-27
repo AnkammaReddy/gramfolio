@@ -4,7 +4,7 @@
 # Database selection (in priority order):
 #   1. An external DATABASE_URL from the environment (e.g. a Neon dev-branch
 #      URL provided as a Cloud Agent secret). When present, the local Postgres
-#      is NOT provisioned and the app talks to that database directly.
+#      is NOT provisioned; dev-schema.sql is still applied to that database.
 #   2. Otherwise, a self-contained local PostgreSQL is installed, started, and
 #      seeded with scripts/dev-schema.sql.
 #

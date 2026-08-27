@@ -45,7 +45,7 @@ Required: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `MESSAGE_ENCRYPTION_KEY` (32-byt
 ## Local / Cloud Agent dev
 
 `.cursor/` defines a self-contained environment (no external DB or secrets needed by default):
-- `install.sh` — if a `DATABASE_URL` secret/env is set (e.g. a Neon dev-branch URL) it is used as-is and the local Postgres is skipped; otherwise it starts a local Postgres, applies `scripts/dev-schema.sql`, and uses that. Then `pnpm install` (frozen) and writes `.env.local` (chosen `DATABASE_URL` + `BETTER_AUTH_SECRET` + `MESSAGE_ENCRYPTION_KEY`, reusing any existing values).
+- `install.sh` — if a `DATABASE_URL` secret/env is set (e.g. a Neon dev-branch URL) it is used as-is and the local Postgres is skipped; **in both paths** `scripts/dev-schema.sql` is applied idempotently (external DB via `scripts/apply-dev-schema.mjs`, local via `psql`). Then `pnpm install` (frozen) and writes `.env.local` (chosen `DATABASE_URL` + `BETTER_AUTH_SECRET` + `MESSAGE_ENCRYPTION_KEY`, reusing any existing values). Re-run install after schema changes on a Neon dev branch.
 - `start.sh` — starts the local Postgres cluster on boot (no-op when an external `DATABASE_URL` is configured); the `dev` terminal runs `pnpm dev`.
 - To point at Neon: add your dev-branch URL (include `?sslmode=require`) as a `DATABASE_URL` secret, then re-run install. If egress is restricted, allowlist the Neon host (`*.neon.tech`).
 - `scripts/dev-schema.sql` mirrors `lib/db/schema.ts` plus the raw-SQL extras (`user.banned`/`banReason`/`banExpires`, `session.impersonatedBy`, `demo_logins`). Keep it in sync when you change the schema. There is no Drizzle Kit migration pipeline.
