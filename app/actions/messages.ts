@@ -12,6 +12,7 @@ import {
   logMessageSent,
 } from "@/lib/message-security"
 import type { ConversationDTO, MessageDTO, MessageSenderRole } from "@/lib/types"
+import { getMessageTopic } from "@/lib/message-topics"
 import { and, desc, eq, isNull, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
@@ -144,6 +145,12 @@ export async function sendMemberMessage(body: string) {
   await logMessageSent(userId, "member", conversation.id)
   revalidatePath("/messages")
   revalidatePath("/admin/messages")
+}
+
+/** Notify admin when a member clicks a card referral apply link on the dashboard. */
+export async function notifyAdminCardReferralInterest() {
+  const topic = getMessageTopic("card-referrals")
+  await sendMemberMessage(topic.draft)
 }
 
 export async function listConversationsForAdmin(): Promise<ConversationDTO[]> {

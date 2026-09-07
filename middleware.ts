@@ -74,10 +74,15 @@ export function middleware(request: NextRequest) {
   // --- Block random hash preview deployment URLs ---
   // Bots discovered URLs like gold-portfolio-tracker-web-i9k0r38u2.vercel.app
   // Block any *.vercel.app hostname that matches the random preview hash pattern
-  // BUT explicitly allow stable named URLs like v0-gramfolio.vercel.app
+  // BUT explicitly allow stable named URLs like v0-gramfolio.vercel.app, AND allow
+  // Vercel's own dynamically generated Preview URLs for this project (VERCEL_ENV
+  // is only ever set by Vercel's build/runtime, so bots can't spoof it) so real
+  // preview logins from Vercel-generated URLs are not blocked.
+  const isVercelPreviewDeploy = process.env.VERCEL_ENV === "preview"
   if (
     PREVIEW_URL_PATTERN.test(hostname) &&
-    !ALLOWED_VERCEL_HOSTNAMES.includes(hostname)
+    !ALLOWED_VERCEL_HOSTNAMES.includes(hostname) &&
+    !isVercelPreviewDeploy
   ) {
     return new NextResponse(
       "This preview deployment is not publicly accessible.",

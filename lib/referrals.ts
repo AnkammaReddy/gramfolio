@@ -62,8 +62,9 @@ export const SCAPIA_REFERRAL: CardReferral = {
   id: "scapia",
   name: "Scapia Federal Bank Credit Card",
   shortName: "Scapia",
-  rewardMessage: "₹5,000 Amazon Pay voucher for 2 successful referrals",
-  runwayHint: "3 to 4 months",
+  /** Maintainer-funded: ~₹4,000 toward hosting for every 2 approved applications via this link. */
+  rewardMessage: "~₹4,000 toward hosting per 2 successful referrals",
+  runwayHint: "roughly 3 to 4 months of hosting",
   url: referralUrl(
     process.env.NEXT_PUBLIC_SCAPIA_REFERRAL_URL,
     "https://apply.scapia.cards/landing_page?referral_code=wztacg",

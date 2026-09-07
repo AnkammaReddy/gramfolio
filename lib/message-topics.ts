@@ -1,4 +1,4 @@
-export type MessageTopicKey = "strategy" | "general"
+export type MessageTopicKey = "strategy" | "card-referrals" | "general"
 
 export type MessageTopic = {
   key: MessageTopicKey
@@ -16,6 +16,12 @@ export const MESSAGE_TOPICS: MessageTopic[] = [
       "Hi! I'd like help reviewing my purchases and optimizing my gold buying strategy. Can you look at my portfolio and suggest improvements?",
   },
   {
+    key: "card-referrals",
+    label: "Card referrals",
+    description: "Contribute by applying or referring via card links",
+    draft: "Hi, I am interested to contribute via card referrals.",
+  },
+  {
     key: "general",
     label: "General message",
     description: "Ask anything else",
@@ -24,5 +30,5 @@ export const MESSAGE_TOPICS: MessageTopic[] = [
 ]
 
 export function getMessageTopic(key: MessageTopicKey | string | null | undefined): MessageTopic {
-  return MESSAGE_TOPICS.find((topic) => topic.key === key) ?? MESSAGE_TOPICS[1]!
+  return MESSAGE_TOPICS.find((topic) => topic.key === key) ?? MESSAGE_TOPICS.find((t) => t.key === "general")!
 }
