@@ -63,7 +63,7 @@ export const SCAPIA_REFERRAL: CardReferral = {
   name: "Scapia Federal Bank Credit Card",
   shortName: "Scapia",
   /** Maintainer-funded: ~₹4,000 toward hosting for every 2 approved applications via this link. */
-  rewardMessage: "Maintainer allocates ~₹4,000 toward hosting for every 2 successful referrals",
+  rewardMessage: "~₹4,000 toward hosting per 2 successful referrals",
   runwayHint: "roughly 3 to 4 months of hosting",
   url: referralUrl(
     process.env.NEXT_PUBLIC_SCAPIA_REFERRAL_URL,
