@@ -70,14 +70,11 @@ export function DashboardFeedbackBanner() {
             </span>
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    className="rounded-sm text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Why this referral is shown"
-                  >
-                    <Info className="h-3.5 w-3.5 shrink-0 cursor-help" />
-                  </button>
+                <TooltipTrigger
+                  className="rounded-sm text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Why this referral is shown"
+                >
+                  <Info className="h-3.5 w-3.5 shrink-0 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[240px] text-xs">
                   Personal Scapia referral link — approved applications help cover hosting.
