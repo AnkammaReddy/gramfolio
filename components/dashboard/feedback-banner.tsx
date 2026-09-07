@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { ExternalLink, Info, X } from "lucide-react"
+import Link from "next/link"
+import { ExternalLink, Info, MessageCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { trackReferralClick } from "@/app/actions/feedback"
@@ -9,8 +10,7 @@ import { useIsDemo } from "@/components/demo-mode-provider"
 import { SCAPIA_REFERRAL } from "@/lib/referrals"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-/** Temporary — set true to show the Scapia referral banner on the dashboard again. */
-const SCAPIA_REFERRAL_BANNER_ENABLED = false
+const SCAPIA_REFERRAL_BANNER_ENABLED = true
 
 function ScapiaMark({ className }: { className?: string }) {
   return (
@@ -59,10 +59,10 @@ export function DashboardFeedbackBanner() {
 
       <div className="flex items-start gap-2.5 pr-6">
         <ScapiaMark />
-        <div className="min-w-0 flex-1 space-y-1">
+        <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-sm font-medium text-foreground">Scapia card referral</span>
+              <span className="text-sm font-medium text-foreground">Help keep GramFolio free</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -74,24 +74,43 @@ export function DashboardFeedbackBanner() {
                       <Info className="h-3.5 w-3.5 shrink-0 cursor-help" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[240px] text-xs">
-                    Helps keep GramFolio running.
+                  <TooltipContent side="top" className="max-w-[260px] text-xs">
+                    GramFolio has no ads or subscription. This is the maintainer&apos;s personal
+                    Scapia referral link — approved applications help cover hosting.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <Button
-              type="button"
-              size="sm"
-              className="h-7 gap-1.5 shrink-0 text-sm"
-              disabled={!SCAPIA_REFERRAL.url}
-              title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
-              onClick={openReferralLink}
-            >
-              <ExternalLink className="h-3 w-3" />
-              Apply
-            </Button>
+            <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1.5 text-sm"
+                asChild
+              >
+                <Link href="/messages?topic=card-referrals">
+                  <MessageCircle className="h-3 w-3" />
+                  Contribute
+                </Link>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="h-7 gap-1.5 text-sm"
+                disabled={!SCAPIA_REFERRAL.url}
+                title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
+                onClick={openReferralLink}
+              >
+                <ExternalLink className="h-3 w-3" />
+                Apply on Scapia
+              </Button>
+            </div>
           </div>
+          <p className="text-sm text-muted-foreground leading-snug">
+            No ads or subscription. If you&apos;re considering Scapia, applying via this link
+            supports hosting at no extra cost to you.
+          </p>
           <p className="text-sm font-medium text-amber-600 dark:text-amber-400 leading-snug">
             {SCAPIA_REFERRAL.rewardMessage}
           </p>
