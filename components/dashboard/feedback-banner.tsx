@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import Link from "next/link"
-import { ExternalLink, Info, MessageCircle, X } from "lucide-react"
+import { ExternalLink, Info, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -84,39 +83,25 @@ export function DashboardFeedbackBanner() {
           </div>
 
           <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
-            No ads or subscription. Applying via this link supports hosting at no extra cost to
-            you.
+            No ads or subscription — applying via this personal link is free for you and helps
+            fund hosting. Goal: 2 successful referrals earns a{" "}
+            <span className="font-medium text-amber-600 dark:text-amber-400">
+              ~₹4,000 Amazon Pay voucher
+            </span>
+            .
           </p>
 
-          <p className="text-xs font-medium text-amber-600 dark:text-amber-400 leading-snug">
-            {SCAPIA_REFERRAL.rewardMessage}
-          </p>
-
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
-            <Button
-              type="button"
-              size="sm"
-              className="h-8 w-full gap-1.5 text-sm sm:w-auto"
-              disabled={!SCAPIA_REFERRAL.url || isPending}
-              title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
-              onClick={openReferralLink}
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              {isPending ? "Notifying…" : "Apply on Scapia"}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="h-8 w-full gap-1.5 text-sm text-muted-foreground sm:w-auto"
-              asChild
-            >
-              <Link href="/messages?topic=card-referrals">
-                <MessageCircle className="h-3.5 w-3.5" />
-                Message admin instead
-              </Link>
-            </Button>
-          </div>
+          <Button
+            type="button"
+            size="sm"
+            className="h-9 w-full gap-1.5 text-sm sm:h-8 sm:w-auto"
+            disabled={!SCAPIA_REFERRAL.url || isPending}
+            title={!SCAPIA_REFERRAL.url ? "Referral link not configured" : undefined}
+            onClick={openReferralLink}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            {isPending ? "Notifying…" : "Apply on Scapia"}
+          </Button>
         </div>
       </div>
     </div>
