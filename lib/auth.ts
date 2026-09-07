@@ -20,7 +20,12 @@ function getBaseURL() {
 }
 
 const trustedOrigins = [
+  // The v0 preview can be reached through several distinct hostnames for the
+  // same running dev server — trust all of them, not just V0_RUNTIME_URL.
   process.env.V0_RUNTIME_URL,
+  process.env.V0_DEV_APP_URL,
+  process.env.V0_BUILD_URL,
+  process.env.V0_SANDBOX_URL,
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
   // Vercel's stable per-branch alias, distinct from the per-deployment VERCEL_URL hash.
   process.env.VERCEL_BRANCH_URL ? `https://${process.env.VERCEL_BRANCH_URL}` : undefined,
@@ -45,12 +50,6 @@ const trustedOrigins = [
   "http://localhost:3001",
   "http://127.0.0.1:3000",
 ].filter(Boolean) as string[]
-
-// Apply cross-site cookie settings in the v0 preview iframe (no VERCEL_ENV at all)
-// OR during real Vercel Preview deployments. VERCEL_ENV is the reliable Vercel-provided
-// flag for this — VERCEL_PROJECT_PRODUCTION_URL is present on Preview too, so it cannot
-// be used to distinguish preview from production.
-const isV0Preview = !process.env.VERCEL_ENV && !process.env.BETTER_AUTH_URL
 
 const isVercelPreviewDeploy = process.env.VERCEL_ENV === "preview"
 
@@ -82,20 +81,16 @@ export const auth = betterAuth({
         }
       : undefined,
   advanced: {
-    ...(isVercelPreviewDeploy
+    // The v0 development preview (chat sandbox) is rendered in a cross-site iframe,
+    // and real Vercel Preview deployments are visited from a different dynamic
+    // origin each time. Both require SameSite=None; Secure or the browser silently
+    // withholds the session cookie — login appears to succeed but the next request
+    // looks signed-out. Production keeps Better Auth's secure first-party defaults.
+    ...(process.env.NODE_ENV === "development" || isVercelPreviewDeploy
       ? {
           defaultCookieAttributes: {
             sameSite: "none" as const,
             secure: true,
-          },
-        }
-      : {}),
-    ...(isV0Preview || process.env.NODE_ENV === "development"
-      ? {
-          useSecureCookies: false,
-          defaultCookieAttributes: {
-            sameSite: "lax" as const,
-            secure: false,
           },
         }
       : {}),
